@@ -1,0 +1,71 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Find & Found — User Flow Rinci Lost & Found",
+    "quality_profile": "standard",
+    "viewBox": [1505, 528],
+    "views": [
+      { "id": "end-to-end", "label": "Alur End-to-End", "focus": ["start", "auth_lost", "lost_logged", "report_lost", "auth_found", "found_logged", "report_found", "match", "notify", "claim", "verify", "handoff", "resolved"], "note": "Dua jalur pelaporan bergabung pada matching, klaim, verifikasi, dan penyelesaian." },
+      { "id": "lost-flow", "label": "Lost Item Flow", "focus": ["start", "auth_lost", "lost_logged", "report_lost", "match", "notify", "claim", "verify", "handoff", "resolved"], "note": "Owner melaporkan barang hilang lalu menunggu kecocokan." },
+      { "id": "found-flow", "label": "Found Item Flow", "focus": ["start", "auth_found", "found_logged", "report_found", "match", "notify", "claim", "verify", "handoff", "resolved"], "note": "Finder melaporkan barang ditemukan lalu meninjau klaim." }
+    ]
+  },
+  "lanes": [
+    { "id": "owner", "label": "Owner / Pemilik" },
+    { "id": "finder", "label": "Finder / Penemu" },
+    { "id": "platform", "label": "Platform", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "entry", "label": "Start & Authentication", "fromCol": 0, "toCol": 1 },
+    { "id": "reporting", "label": "Reporting & Matching", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "resolution", "label": "Claim, Handover & Feedback", "fromCol": 4, "toCol": 5 }
+  ],
+  "mainPath": ["start", "auth_lost", "lost_logged", "report_lost", "match", "notify", "claim", "verify"],
+  "semanticChecks": { "allowedRoots": ["start"], "allowedTerminals": ["resolved"] },
+  "nodes": [
+    { "id": "start", "lane": "platform", "col": 0, "type": "external", "label": "Start", "sublabel": "Lost atau Found", "width": 142 },
+    { "id": "auth_lost", "lane": "owner", "col": 1, "type": "security", "label": "Authentication", "sublabel": "Login / Register", "width": 142 },
+    { "id": "auth_found", "lane": "finder", "col": 1, "type": "security", "label": "Authentication", "sublabel": "Login / Register", "width": 142 },
+    { "id": "lost_logged", "lane": "owner", "col": 2, "type": "security", "label": "Logged In?", "sublabel": "Ya / Tidak", "width": 142 },
+    { "id": "found_logged", "lane": "finder", "col": 2, "type": "security", "label": "Logged In?", "sublabel": "Ya / Tidak", "width": 142 },
+    { "id": "report_lost", "lane": "owner", "col": 3, "type": "frontend", "label": "Report Lost Item", "sublabel": "Details + Photo + Location", "width": 150 },
+    { "id": "report_found", "lane": "finder", "col": 3, "type": "frontend", "label": "Report Found Item", "sublabel": "Details + Photo + Location", "width": 150 },
+    { "id": "match", "lane": "platform", "col": 4, "type": "backend", "label": "Matching Process", "sublabel": "AI Match + Database Search", "width": 150 },
+    { "id": "keep_active", "lane": "platform", "col": 3, "type": "database", "label": "Keep Active", "sublabel": "Remain in Database", "width": 150 },
+    { "id": "notify", "lane": "platform", "col": 5, "type": "messagebus", "label": "Notify Both Parties", "sublabel": "Lost & Found", "width": 150 },
+    { "id": "claim", "lane": "owner", "col": 5, "type": "security", "label": "Claim Initiated?", "sublabel": "Ya / Tidak", "width": 150 },
+    { "id": "wait", "lane": "owner", "col": 4, "type": "external", "label": "Reminder / Wait", "sublabel": "Await Action", "width": 150 },
+    { "id": "verify", "lane": "finder", "col": 5, "type": "security", "label": "Claim Verification", "sublabel": "Chat + Proof", "width": 150 },
+    { "id": "dispute", "lane": "platform", "col": 2, "type": "security", "label": "Dispute Resolution", "sublabel": "Escalate / Retry", "width": 150 },
+    { "id": "handoff", "lane": "finder", "col": 4, "type": "frontend", "label": "Handover Process", "sublabel": "Meeting / Shipping", "width": 150 },
+    { "id": "resolved", "lane": "platform", "col": 1, "type": "database", "label": "Resolution & Feedback", "sublabel": "Resolved + Rating", "width": 150 }
+  ],
+  "edges": [
+    { "id": "e1", "from": "start", "to": "auth_lost", "label": "Lost item" },
+    { "id": "e2", "from": "start", "to": "auth_found", "label": "Found item" },
+    { "id": "e3", "from": "auth_lost", "to": "lost_logged", "label": "Authenticate" },
+    { "id": "e4", "from": "auth_found", "to": "found_logged", "label": "Authenticate" },
+    { "id": "e5", "from": "lost_logged", "to": "report_lost", "label": "Ya" },
+    { "id": "e6", "from": "found_logged", "to": "report_found", "label": "Ya" },
+    { "id": "e7", "from": "report_lost", "to": "match", "label": "Submit report", "variant": "emphasis" },
+    { "id": "e8", "from": "report_found", "to": "match", "label": "Submit report", "variant": "emphasis" },
+    { "id": "e9", "from": "match", "to": "keep_active", "label": "No match", "variant": "default", "role": "return" },
+    { "id": "e10", "from": "match", "to": "notify", "label": "Match found", "variant": "emphasis" },
+    { "id": "e11", "from": "notify", "to": "claim", "label": "Owner notified" },
+    { "id": "e12", "from": "claim", "to": "wait", "label": "Tidak", "role": "return" },
+    { "id": "e13", "from": "claim", "to": "verify", "label": "Ya" },
+    { "id": "e14", "from": "verify", "to": "dispute", "label": "Tidak / disputed", "variant": "security" },
+    { "id": "e15", "from": "verify", "to": "handoff", "label": "Ya / verified", "variant": "security" },
+    { "id": "e16", "from": "handoff", "to": "resolved", "label": "Handover confirmed", "variant": "emphasis", "role": "return" },
+    { "id": "e17", "from": "keep_active", "to": "match", "label": "Retry matching", "role": "return" },
+    { "id": "e18", "from": "wait", "to": "claim", "label": "Action received", "role": "return" },
+    { "id": "e19", "from": "dispute", "to": "verify", "label": "Retry verification", "role": "return" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Matching Process", "items": ["AI membandingkan kategori, lokasi, tanggal, dan kata kunci.", "Tanpa match, laporan tetap aktif di database."] },
+    { "dot": "violet", "title": "Claim Verification", "items": ["Owner mengirim bukti kepemilikan.", "Finder meninjau klaim sebelum kontak dibuka."] },
+    { "dot": "amber", "title": "Exception Handling", "items": ["Tidak login: pengguna kembali ke authentication.", "Tidak ada klaim: sistem mengirim reminder dan menunggu.", "Klaim ditolak: proses masuk dispute resolution."] },
+    { "dot": "emerald", "title": "End State", "items": ["Handover melalui meeting atau shipping.", "Kedua pihak memberi feedback setelah resolution."] }
+  ]
+}

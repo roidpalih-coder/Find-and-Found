@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find &amp; Found — Temukan yang Hilang, Kembalikan dengan Tenang</title>
+  <meta name="description" content="Find &amp; Found — platform komunitas untuk melaporkan dan menemukan kembali barang hilang di Kabupaten Pati." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:  { 50:'#eff6ff', 100:'#dbeafe', 200:'#bfdbfe', 500:'#2563eb', 600:'#1d4ed8', 700:'#1e40af', 800:'#1e3a8a' },
+            teal:     { 50:'#f0fdfa', 100:'#ccfbf1', 400:'#2dd4bf', 500:'#14b8a6', 600:'#0d9488', 700:'#0f766e' },
+            success:  { 50:'#f0fdf4', 100:'#dcfce7', 500:'#22c55e', 600:'#16a34a', 700:'#15803d' },
+            warning:  { 50:'#fffbeb', 400:'#fbbf24', 500:'#f59e0b', 600:'#d97706' },
+            danger:   { 50:'#fef2f2', 100:'#fee2e2', 500:'#ef4444', 600:'#dc2626', 700:'#b91c1c' },
+            wa:       '#25d366',
+            surface:  '#f8fafc',
+            main:     '#0f172a',
+            muted:    '#64748b',
+            line:     '#e2e8f0',
+          },
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'] },
+          boxShadow: {
+            low:  '0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px 0 rgba(0,0,0,0.04)',
+            med:  '0 4px 12px -1px rgba(0,0,0,0.10), 0 2px 6px -1px rgba(0,0,0,0.06)',
+            high: '0 20px 40px -8px rgba(0,0,0,0.15), 0 8px 16px -4px rgba(0,0,0,0.08)',
+            glow: '0 0 0 3px rgba(37,99,235,0.25)',
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4,0,0.6,1) infinite',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --color-primary: #1e40af;
+      --color-teal: #0d9488;
+      --color-accent: #2563eb;
+      --color-surface: #f8fafc;
+    }
+    [data-reveal] { opacity: 0; transform: translateY(24px); }
+    @media (prefers-reduced-motion: reduce) {
+      [data-reveal] { opacity: 1; transform: none; transition: none; }
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+    .skip-link {
+      position: absolute; top: -100%; left: 0; z-index: 9999;
+      background: #1e40af; color: #fff; padding: 0.75rem 1.25rem;
+      font-weight: 700; border-radius: 0 0 8px 8px; text-decoration: none;
+    }
+    .skip-link:focus { top: 0; }
+    .focus-ring:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; border-radius: 6px; }
+    .card-hover { transition: transform 180ms ease, box-shadow 180ms ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -6px rgba(0,0,0,0.12); }
+    .gradient-hero {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 40%, #0d9488 100%);
+    }
+    .badge-lost   { background:#dc2626; color:#fff; }
+    .badge-found  { background:#16a34a; color:#fff; }
+    .badge-done   { background:#d97706; color:#fff; }
+    .stat-number  { font-variant-numeric: tabular-nums; }
+    .search-pill:focus-within { box-shadow: 0 0 0 3px rgba(37,99,235,0.30); }
+    .filter-pill.active { background:#1e40af; color:#fff; }
+    .filter-pill { cursor: pointer; }
+  </style>
+</head>
+<body class="bg-surface font-sans text-main antialiased">
+
+  <a href="#konten-utama" class="skip-link">Langsung ke konten</a>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur-sm" role="banner">
+    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+      <div class="flex items-center gap-3">
+        <button id="btnMenu" class="focus-ring rounded-lg p-2 text-main hover:bg-primary-50 md:hidden" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="mobileMenu">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+        <a href="#" class="focus-ring flex items-center gap-2" aria-label="Find & Found — Beranda">
+          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-700" aria-hidden="true">
+            <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+          </span>
+          <span class="text-lg font-extrabold tracking-tight text-primary-700">Find &amp; Found</span>
+        </a>
+      </div>
+      <nav class="hidden items-center gap-7 text-sm font-semibold text-muted md:flex" aria-label="Navigasi utama">
+        <a href="#" class="focus-ring text-primary-700 transition hover:text-primary-800" aria-current="page">Beranda</a>
+        <a href="#terbaru" class="focus-ring transition hover:text-main">Jelajahi</a>
+        <a href="#cara-kerja" class="focus-ring transition hover:text-main">Cara Kerja</a>
+        <a href="#prioritas" class="focus-ring transition hover:text-main">Dokumen Penting</a>
+        <a href="#tentang" class="focus-ring transition hover:text-main">Tentang</a>
+      </nav>
+      <div class="hidden items-center gap-2.5 md:flex">
+        <a href="#" class="focus-ring rounded-lg px-4 py-2 text-sm font-semibold text-main transition hover:bg-surface">Masuk</a>
+        <a href="#" class="focus-ring rounded-lg bg-primary-700 px-4 py-2 text-sm font-semibold text-white shadow-low transition hover:bg-primary-800">Daftar Gratis</a>
+      </div>
+      <div class="flex items-center gap-1 md:hidden">
+        <button class="focus-ring rounded-lg p-2 text-main hover:bg-primary-50" aria-label="Cari barang">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div id="mobileMenu" class="hidden border-t border-line bg-white px-4 py-3 md:hidden" role="navigation" aria-label="Menu mobile">
+      <nav class="flex flex-col gap-1 text-sm font-semibold text-main">
+        <a href="#" class="focus-ring rounded-lg bg-primary-50 px-3 py-2.5 text-primary-700" aria-current="page">Beranda</a>
+        <a href="#terbaru" class="focus-ring rounded-lg px-3 py-2.5 hover:bg-primary-50">Jelajahi</a>
+        <a href="#cara-kerja" class="focus-ring rounded-lg px-3 py-2.5 hover:bg-primary-50">Cara Kerja</a>
+        <a href="#prioritas" class="focus-ring rounded-lg px-3 py-2.5 hover:bg-primary-50">Dokumen Penting</a>
+        <a href="#tentang" class="focus-ring rounded-lg px-3 py-2.5 hover:bg-primary-50">Tentang</a>
+        <div class="mt-3 flex gap-2 border-t border-line pt-3">
+          <a href="#" class="focus-ring flex-1 rounded-lg border border-line px-3 py-2.5 text-center font-semibold hover:bg-surface">Masuk</a>
+          <a href="#" class="focus-ring flex-1 rounded-lg bg-primary-700 px-3 py-2.5 text-center font-semibold text-white hover:bg-primary-800">Daftar</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="konten-utama">
+
+    <!-- HERO -->
+    <section class="gradient-hero relative overflow-hidden text-white" aria-labelledby="hero-heading">
+      <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div class="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-white/8 blur-3xl"></div>
+        <div class="absolute -bottom-40 -right-20 h-[28rem] w-[28rem] rounded-full bg-teal-500/20 blur-3xl"></div>
+        <div class="absolute left-1/2 top-1/4 h-64 w-64 -translate-x-1/2 rounded-full bg-primary-500/15 blur-2xl"></div>
+      </div>
+
+      <div class="relative mx-auto max-w-6xl px-4 py-16 text-center md:py-28">
+        <div data-reveal>
+          <span class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-4 py-1.5 text-xs font-semibold backdrop-blur-sm">
+            <svg class="h-3.5 w-3.5 text-teal-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+            Melayani Kabupaten Pati &amp; 20 Kecamatan
+          </span>
+        </div>
+
+        <h1 id="hero-heading" class="mx-auto mt-5 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight md:text-5xl lg:text-6xl" data-reveal>
+          Temukan yang Hilang,<br class="hidden sm:block" />
+          <span class="text-teal-300">Kembalikan</span> dengan Tenang.
+        </h1>
+        <p class="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-blue-100 md:text-lg" data-reveal>
+          Platform komunitas terpercaya untuk melaporkan dan menemukan kembali barang hilang. Cepat, aman, dan terverifikasi — langsung ke tangan pemiliknya.
+        </p>
+
+        <div class="mx-auto mt-8 max-w-xl" data-reveal>
+          <form class="search-pill flex items-center gap-2 rounded-full bg-white p-2 shadow-high" action="#" method="get" role="search" aria-label="Cari laporan barang">
+            <label for="searchInput" class="sr-only">Cari barang, kecamatan, atau kategori</label>
+            <svg class="ml-3 h-5 w-5 shrink-0 text-muted" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+            <input id="searchInput" type="search" placeholder="Cari barang, kecamatan, atau kategori..." class="w-full bg-transparent text-sm text-main outline-none placeholder:text-muted" />
+            <button type="submit" class="focus-ring shrink-0 rounded-full bg-primary-700 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-primary-800">Cari</button>
+          </form>
+          <div class="mt-3.5 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold" role="list" aria-label="Pencarian populer">
+            <span class="text-blue-200" aria-hidden="true">Populer:</span>
+            <a href="#" class="focus-ring rounded-full bg-white/15 px-3.5 py-1.5 transition hover:bg-white/25" role="listitem">KTP</a>
+            <a href="#" class="focus-ring rounded-full bg-white/15 px-3.5 py-1.5 transition hover:bg-white/25" role="listitem">SIM</a>
+            <a href="#" class="focus-ring rounded-full bg-white/15 px-3.5 py-1.5 transition hover:bg-white/25" role="listitem">Kunci</a>
+            <a href="#" class="focus-ring rounded-full bg-white/15 px-3.5 py-1.5 transition hover:bg-white/25" role="listitem">Dompet</a>
+            <a href="#" class="focus-ring rounded-full bg-white/15 px-3.5 py-1.5 transition hover:bg-white/25" role="listitem">Handphone</a>
+          </div>
+        </div>
+
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3" data-reveal>
+          <a href="#" class="focus-ring inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-primary-700 shadow-med transition hover:bg-primary-50">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+            Laporkan Kehilangan
+          </a>
+          <a href="#" class="focus-ring inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></svg>
+            Laporkan Penemuan
+          </a>
+          <a href="https://wa.me/62" class="focus-ring inline-flex items-center gap-2 rounded-xl border border-white/30 bg-[#25d366]/20 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-[#25d366]/35" aria-label="Hubungi via WhatsApp">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+            Chat WhatsApp
+          </a>
+        </div>
+
+        <dl class="mx-auto mt-14 grid max-w-md grid-cols-3 gap-6" data-reveal>
+          <div class="text-center">
+            <dt class="order-2 mt-1 text-xs font-medium text-blue-200">Barang Dilaporkan</dt>
+            <dd class="order-1 stat-number text-3xl font-extrabold" id="stat-1" aria-label="128 barang dilaporkan">128+</dd>
+          </div>
+          <div class="border-x border-white/20 text-center">
+            <dt class="order-2 mt-1 text-xs font-medium text-blue-200">Berhasil Kembali</dt>
+            <dd class="order-1 stat-number text-3xl font-extrabold" id="stat-2" aria-label="76 barang berhasil kembali">76</dd>
+          </div>
+          <div class="text-center">
+            <dt class="order-2 mt-1 text-xs font-medium text-blue-200">Kecamatan</dt>
+            <dd class="order-1 stat-number text-3xl font-extrabold" id="stat-3" aria-label="20 kecamatan terjangkau">20</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- TRUST BAR -->
+    <section class="border-b border-line bg-white py-5" aria-label="Keunggulan layanan">
+      <div class="mx-auto max-w-6xl px-4">
+        <ul class="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-semibold text-muted" role="list">
+          <li class="flex items-center gap-2" role="listitem">
+            <svg class="h-4 w-4 text-success-600" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+            Terverifikasi komunitas
+          </li>
+          <li class="flex items-center gap-2" role="listitem">
+            <svg class="h-4 w-4 text-success-600" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+            Gratis selamanya
+          </li>
+          <li class="flex items-center gap-2" role="listitem">
+            <svg class="h-4 w-4 text-success-600" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+            Chat langsung via WhatsApp
+          </li>
+          <li class="flex items-center gap-2" role="listitem">
+            <svg class="h-4 w-4 text-success-600" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+            Dokumen penting diprioritaskan
+          </li>
+          <li class="flex items-center gap-2" role="listitem">
+            <svg class="h-4 w-4 text-success-600" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+            Reward bagi penemu
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- CARA KERJA -->
+    <section id="cara-kerja" class="mx-auto max-w-6xl px-4 py-14 md:py-20" aria-labelledby="cara-kerja-heading">
+      <div class="mb-12 text-center" data-reveal>
+        <p class="text-sm font-bold uppercase tracking-widest text-teal-600">Mudah &amp; Cepat</p>
+        <h2 id="cara-kerja-heading" class="mt-2 text-2xl font-extrabold md:text-3xl">Cara Kerja Find &amp; Found</h2>
+        <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted">Tiga langkah sederhana untuk menyatukan kembali barang dengan pemiliknya.</p>
+      </div>
+      <ol class="grid gap-8 sm:grid-cols-3" role="list">
+        <li class="relative flex flex-col items-center text-center" data-reveal>
+          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-700 text-white shadow-med" aria-hidden="true">
+            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+          </div>
+          <div class="absolute top-8 left-1/2 hidden h-px w-full bg-line sm:block" aria-hidden="true" style="left:calc(50% + 2rem); width: calc(100% - 2rem);"></div>
+          <span class="mt-5 flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-xs font-extrabold text-primary-700" aria-hidden="true">1</span>
+          <h3 class="mt-3 font-bold">Buat Laporan</h3>
+          <p class="mt-2 text-sm leading-relaxed text-muted">Isi formulir singkat dengan foto, deskripsi, dan lokasi barang hilang atau ditemukan.</p>
+        </li>
+        <li class="relative flex flex-col items-center text-center" data-reveal>
+          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-med" aria-hidden="true">
+            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+          </div>
+          <span class="mt-5 flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-xs font-extrabold text-teal-700" aria-hidden="true">2</span>
+          <h3 class="mt-3 font-bold">Platform Mencocokkan</h3>
+          <p class="mt-2 text-sm leading-relaxed text-muted">Sistem kami menampilkan laporan ke komunitas dan memberi notifikasi jika ada kecocokan.</p>
+        </li>
+        <li class="flex flex-col items-center text-center" data-reveal>
+          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-success-600 text-white shadow-med" aria-hidden="true">
+            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z"/></svg>
+          </div>
+          <span class="mt-5 flex h-6 w-6 items-center justify-center rounded-full bg-success-100 text-xs font-extrabold text-success-700" aria-hidden="true">3</span>
+          <h3 class="mt-3 font-bold">Barang Kembali</h3>
+          <p class="mt-2 text-sm leading-relaxed text-muted">Hubungi via chat atau WhatsApp, verifikasi kepemilikan, dan atur pengambilan. Penemu mendapat reward!</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- PRIORITAS DOKUMEN PENTING -->
+    <section id="prioritas" class="bg-danger-50/60 py-12 md:py-16" aria-labelledby="prioritas-heading">
+      <div class="mx-auto max-w-6xl px-4">
+        <div class="mb-8 flex flex-wrap items-end justify-between gap-4" data-reveal>
+          <div>
+            <p class="text-sm font-bold uppercase tracking-widest text-danger-600">Urgensi Tinggi</p>
+            <h2 id="prioritas-heading" class="mt-1 text-2xl font-extrabold md:text-3xl">Dokumen Penting</h2>
+            <p class="mt-1.5 max-w-lg text-sm text-muted">KTP, SIM, Paspor, dan Ijazah ditampilkan paling atas agar segera kembali ke pemiliknya.</p>
+          </div>
+          <a href="#" class="focus-ring hidden shrink-0 items-center gap-1.5 text-sm font-bold text-danger-600 hover:text-danger-700 sm:inline-flex">
+            Lihat Semua
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+          </a>
+        </div>
+        <ul class="grid gap-4 md:grid-cols-3" role="list">
+
+          <li role="listitem">
+            <article class="card-hover flex items-center gap-4 rounded-2xl border border-danger-600/20 bg-white p-4 shadow-low">
+              <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-danger-50 text-danger-600 ring-1 ring-danger-600/20" aria-hidden="true">
+                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z"/></svg>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="badge-lost rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide">LOST</span>
+                  <span class="rounded-full bg-danger-50 px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-danger-700 ring-1 ring-danger-200">KTP</span>
+                </div>
+                <h3 class="mt-1.5 truncate font-bold">Budi Santoso</h3>
+                <p class="mt-0.5 flex items-center gap-1 text-xs text-muted">
+                  <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                  <time datetime="2024-01-01T10:00">Pati Kota · 1 jam lalu</time>
+                </p>
+              </div>
+              <a href="#" class="focus-ring shrink-0 rounded-lg bg-danger-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-danger-700" aria-label="Hubungi terkait KTP Budi Santoso">Hubungi</a>
+            </article>
+          </li>
+
+          <li role="listitem">
+            <article class="card-hover flex items-center gap-4 rounded-2xl border border-success-600/20 bg-white p-4 shadow-low">
+              <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-success-50 text-success-600 ring-1 ring-success-600/20" aria-hidden="true">
+                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/></svg>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="badge-found rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide">FOUND</span>
+                  <span class="rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-success-700 ring-1 ring-success-200">IJAZAH</span>
+                </div>
+                <h3 class="mt-1.5 truncate font-bold">Siti Aminah</h3>
+                <p class="mt-0.5 flex items-center gap-1 text-xs text-muted">
+                  <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                  <time datetime="2024-01-01T08:00">Juwana · 3 jam lalu</time>
+                </p>
+              </div>
+              <a href="#" class="focus-ring shrink-0 rounded-lg bg-success-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-success-700" aria-label="Hubungi terkait Ijazah Siti Aminah">Hubungi</a>
+            </article>
+          </li>
+
+          <li role="listitem">
+            <article class="card-hover flex items-center gap-4 rounded-2xl border border-danger-600/20 bg-white p-4 shadow-low">
+              <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-danger-50 text-danger-600 ring-1 ring-danger-600/20" aria-hidden="true">
+                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z"/></svg>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="badge-lost rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide">LOST</span>
+                  <span class="rounded-full bg-danger-50 px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-danger-700 ring-1 ring-danger-200">SIM</span>
+                </div>
+                <h3 class="mt-1.5 truncate font-bold">Andi Pratama</h3>
+                <p class="mt-0.5 flex items-center gap-1 text-xs text-muted">
+                  <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                  <time datetime="2024-01-01T06:00">Sukolilo · 5 jam lalu</time>
+                </p>
+              </div>
+              <a href="#" class="focus-ring shrink-0 rounded-lg bg-danger-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-danger-700" aria-label="Hubungi terkait SIM Andi Pratama">Hubungi</a>
+            </article>
+          </li>
+
+        </ul>
+      </div>
+    </section>
+
+    <!-- LAPORAN TERBARU -->
+    <section id="terbaru" class="mx-auto max-w-6xl px-4 py-14 md:py-20" aria-labelledby="terbaru-heading">
+      <div class="mb-8 flex flex-wrap items-end justify-between gap-4" data-reveal>
+        <div>
+          <p class="text-sm font-bold uppercase tracking-widest text-primary-600">Real-time</p>
+          <h2 id="terbaru-heading" class="mt-1 text-2xl font-extrabold md:text-3xl">Laporan Terbaru</h2>
+        </div>
+        <a href="#" class="focus-ring inline-flex shrink-0 items-center gap-1.5 text-sm font-bold text-primary-700 hover:text-primary-800">
+          Lihat Semua
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+        </a>
+      </div>
+
+      <div class="mb-6 flex flex-wrap gap-2" role="group" aria-label="Filter kategori" data-reveal>
+        <button class="filter-pill focus-ring active rounded-full px-4 py-2 text-xs font-bold ring-1 ring-line transition" data-filter="semua" aria-pressed="true">Semua</button>
+        <button class="filter-pill focus-ring rounded-full bg-surface px-4 py-2 text-xs font-bold ring-1 ring-line transition hover:bg-primary-50" data-filter="lost" aria-pressed="false">
+          <span class="mr-1.5 inline-block h-2 w-2 rounded-full bg-danger-500" aria-hidden="true"></span>LOST
+        </button>
+        <button class="filter-pill focus-ring rounded-full bg-surface px-4 py-2 text-xs font-bold ring-1 ring-line transition hover:bg-primary-50" data-filter="found" aria-pressed="false">
+          <span class="mr-1.5 inline-block h-2 w-2 rounded-full bg-success-500" aria-hidden="true"></span>FOUND
+        </button>
+        <button class="filter-pill focus-ring rounded-full bg-surface px-4 py-2 text-xs font-bold ring-1 ring-line transition hover:bg-primary-50" data-filter="dokumen">Dokumen</button>
+        <button class="filter-pill focus-ring rounded-full bg-surface px-4 py-2 text-xs font-bold ring-1 ring-line transition hover:bg-primary-50" data-filter="elektronik">Elektronik</button>
+        <button class="filter-pill focus-ring rounded-full bg-surface px-4 py-2 text-xs font-bold ring-1 ring-line transition hover:bg-primary-50" data-filter="aksesoris">Aksesoris</button>
+      </div>
+
+      <ul class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" role="list" id="reportGrid">
+
+        <li role="listitem">
+          <article class="card-hover group overflow-hidden rounded-2xl bg-white shadow-low ring-1 ring-line">
+            <div class="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-primary-50 to-blue-100" aria-hidden="true">
+              <svg class="h-14 w-14 text-primary-200 transition group-hover:scale-110 group-hover:text-primary-300" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5H5.625a1.875 1.875 0 0 1 0-3.75h12.75a.938.938 0 0 1 .938.938V7.5Zm0 0a1.875 1.875 0 0 1 1.875 1.875v9A1.875 1.875 0 0 1 20.25 20.25H4.875A1.875 1.875 0 0 1 3 18.375v-12"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a1.125 1.125 0 0 1 0 3 1.125 1.125 0 0 1 0-3Z"/></svg>
+              <span class="absolute right-3 top-3 badge-lost rounded-full px-2.5 py-1 text-[10px] font-extrabold tracking-wide shadow-low">LOST</span>
+            </div>
+            <div class="p-4">
+              <p class="text-[11px] font-extrabold uppercase tracking-widest text-warning-600">Aksesoris</p>
+              <h3 class="mt-1 truncate font-bold">Dompet Kulit Hitam</h3>
+              <p class="mt-2 flex items-center gap-1 text-xs text-muted">
+                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                <time>Margorejo · 2 jam lalu</time>
+              </p>
+              <a href="#" class="focus-ring mt-3 block rounded-lg border border-line py-2 text-center text-xs font-bold text-muted transition hover:border-primary-300 hover:text-primary-700" aria-label="Lihat detail laporan dompet kulit hitam">Lihat Detail</a>
+            </div>
+          </article>
+        </li>
+
+        <li role="listitem">
+          <article class="card-hover group overflow-hidden rounded-2xl bg-white shadow-low ring-1 ring-line">
+            <div class="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-teal-50 to-teal-100" aria-hidden="true">
+              <svg class="h-14 w-14 text-teal-200 transition group-hover:scale-110 group-hover:text-teal-400" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z"/></svg>
+              <span class="absolute right-3 top-3 badge-found rounded-full px-2.5 py-1 text-[10px] font-extrabold tracking-wide shadow-low">FOUND</span>
+            </div>
+            <div class="p-4">
+              <p class="text-[11px] font-extrabold uppercase tracking-widest text-warning-600">Kunci</p>
+              <h3 class="mt-1 truncate font-bold">Set Kunci Mobil (Honda)</h3>
+              <p class="mt-2 flex items-center gap-1 text-xs text-muted">
+                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                <time>Pati Kota · 5 jam lalu</time>
+              </p>
+              <a href="#" class="focus-ring mt-3 block rounded-lg border border-line py-2 text-center text-xs font-bold text-muted transition hover:border-teal-300 hover:text-teal-700" aria-label="Lihat detail laporan set kunci mobil Honda">Lihat Detail</a>
+            </div>
+          </article>
+        </li>
+
+        <li role="listitem">
+          <article class="card-hover group overflow-hidden rounded-2xl bg-white shadow-low ring-1 ring-line">
+            <div class="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-warning-50 to-amber-100" aria-hidden="true">
+              <svg class="h-14 w-14 text-warning-300 transition group-hover:scale-110 group-hover:text-warning-500" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
+              <span class="absolute right-3 top-3 badge-done rounded-full px-2.5 py-1 text-[10px] font-extrabold tracking-wide shadow-low">RESOLVED</span>
+            </div>
+            <div class="p-4">
+              <p class="text-[11px] font-extrabold uppercase tracking-widest text-warning-600">Elektronik</p>
+              <h3 class="mt-1 truncate font-bold">iPhone 13 — Biru</h3>
+              <p class="mt-2 flex items-center gap-1 text-xs text-muted">
+                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                <time>Tayu · 1 hari lalu</time>
+              </p>
+              <span class="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-success-50 py-2 text-xs font-bold text-success-700">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                Sudah Kembali ke Pemilik
+              </span>
+            </div>
+          </article>
+        </li>
+
+        <li role="listitem">
+          <article class="card-hover group overflow-hidden rounded-2xl bg-white shadow-low ring-1 ring-line">
+            <div class="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-primary-50 to-blue-100" aria-hidden="true">
+              <svg class="h-14 w-14 text-primary-200 transition group-hover:scale-110 group-hover:text-primary-400" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+              <span class="absolute right-3 top-3 badge-found rounded-full px-2.5 py-1 text-[10px] font-extrabold tracking-wide shadow-low">FOUND</span>
+            </div>
+            <div class="p-4">
+              <p class="text-[11px] font-extrabold uppercase tracking-widest text-warning-600">Tas</p>
+              <h3 class="mt-1 truncate font-bold">Tas Ransel Biru</h3>
+              <p class="mt-2 flex items-center gap-1 text-xs text-muted">
+                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                <time>Juwana · 6 jam lalu</time>
+              </p>
+              <a href="#" class="focus-ring mt-3 block rounded-lg border border-line py-2 text-center text-xs font-bold text-muted transition hover:border-primary-300 hover:text-primary-700" aria-label="Lihat detail laporan tas ransel biru">Lihat Detail</a>
+            </div>
+          </article>
+        </li>
+
+      </ul>
+
+      <div class="mt-8 text-center" data-reveal>
+        <a href="#" class="focus-ring inline-flex items-center gap-2 rounded-xl border border-line bg-white px-8 py-3.5 text-sm font-bold text-main shadow-low transition hover:bg-surface hover:shadow-med">
+          Lihat Semua Laporan
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- TESTIMONIAL / SUCCESS STORY -->
+    <section class="bg-primary-700 py-14 md:py-20 text-white" aria-labelledby="testimonial-heading">
+      <div class="mx-auto max-w-6xl px-4">
+        <div class="mb-10 text-center" data-reveal>
+          <p class="text-sm font-bold uppercase tracking-widest text-teal-300">Cerita Nyata</p>
+          <h2 id="testimonial-heading" class="mt-2 text-2xl font-extrabold md:text-3xl">Mereka Sudah Merasakan</h2>
+        </div>
+        <ul class="grid gap-6 md:grid-cols-3" role="list">
+
+          <li role="listitem" data-reveal>
+            <article class="rounded-2xl bg-white/10 p-6 backdrop-blur-sm ring-1 ring-white/15">
+              <div class="flex items-center gap-1 text-warning-400" aria-label="5 bintang">
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+              </div>
+              <blockquote class="mt-4 text-sm leading-relaxed text-blue-100">
+                "KTP saya hilang di Pasar Puri. Dalam 2 jam setelah lapor di Find &amp; Found, ada yang menghubungi. Alhamdulillah langsung ketemu!"
+              </blockquote>
+              <footer class="mt-4 flex items-center gap-3">
+                <div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary-500 text-sm font-extrabold" aria-hidden="true">R</div>
+                <div>
+                  <p class="text-sm font-bold">Rina W.</p>
+                  <p class="text-xs text-blue-200">Pati Kota</p>
+                </div>
+              </footer>
+            </article>
+          </li>
+
+          <li role="listitem" data-reveal>
+            <article class="rounded-2xl bg-white/10 p-6 backdrop-blur-sm ring-1 ring-white/15">
+              <div class="flex items-center gap-1 text-warning-400" aria-label="5 bintang">
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+              </div>
+              <blockquote class="mt-4 text-sm leading-relaxed text-blue-100">
+                "Saya nemuin dompet di Juwana, langsung upload ke sini. Pemiliknya chat dalam sejam. Prosesnya mudah banget, saya juga dapat reward ucapan terima kasih."
+              </blockquote>
+              <footer class="mt-4 flex items-center gap-3">
+                <div class="flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 text-sm font-extrabold" aria-hidden="true">D</div>
+                <div>
+                  <p class="text-sm font-bold">Danu P.</p>
+                  <p class="text-xs text-blue-200">Juwana</p>
+                </div>
+              </footer>
+            </article>
+          </li>
+
+          <li role="listitem" data-reveal>
+            <article class="rounded-2xl bg-white/10 p-6 backdrop-blur-sm ring-1 ring-white/15">
+              <div class="flex items-center gap-1 text-warning-400" aria-label="5 bintang">
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+                <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 0 0 .95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 0 0-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 0 0-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 0 0-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 0 0 .951-.69l1.07-3.292Z"/></svg>
+              </div>
+              <blockquote class="mt-4 text-sm leading-relaxed text-blue-100">
+                "Ijazah S1 saya ketinggalan di angkot rute Pati–Tayu. Berkat platform ini, akhirnya ketemu juga. Terima kasih banyak untuk komunitas Pati yang peduli!"
+              </blockquote>
+              <footer class="mt-4 flex items-center gap-3">
+                <div class="flex h-9 w-9 items-center justify-center rounded-full bg-success-600 text-sm font-extrabold" aria-hidden="true">N</div>
+                <div>
+                  <p class="text-sm font-bold">Nadia S.</p>
+                  <p class="text-xs text-blue-200">Tayu</p>
+                </div>
+              </footer>
+            </article>
+          </li>
+
+        </ul>
+      </div>
+    </section>
+
+    <!-- CTA BAWAH -->
+    <section class="mx-auto max-w-6xl px-4 py-14 md:py-20" aria-labelledby="cta-heading">
+      <div class="overflow-hidden rounded-3xl bg-gradient-to-br from-teal-600 to-primary-700 p-8 text-center text-white shadow-high md:p-14" data-reveal>
+        <svg class="mx-auto mb-4 h-12 w-12 text-teal-200" fill="none" viewBox="0 0 24 24" stroke-width="1.4" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
+        </svg>
+        <h2 id="cta-heading" class="text-2xl font-extrabold md:text-3xl">Bergabung dengan Komunitas Pati</h2>
+        <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-blue-100">Sudah <strong class="text-white">128+ warga</strong> aktif berbagi laporan. Daftarkan diri sekarang dan bantu sesama menemukan kembali barang berharga mereka.</p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <a href="#" class="focus-ring inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-sm font-bold text-primary-700 shadow-med transition hover:bg-primary-50">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg>
+            Daftar Gratis Sekarang
+          </a>
+          <a href="#" class="focus-ring inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/15 px-8 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/25">
+            Pelajari Lebih Lanjut
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer id="tentang" class="bg-main text-white" role="contentinfo">
+    <div class="mx-auto max-w-6xl px-4 py-12">
+      <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="lg:col-span-2">
+          <a href="#" class="focus-ring flex items-center gap-2" aria-label="Find & Found — Beranda">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-700" aria-hidden="true">
+              <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+            </span>
+            <span class="text-lg font-extrabold tracking-tight">Find &amp; Found</span>
+          </a>
+          <p class="mt-3 max-w-xs text-sm leading-relaxed text-slate-400">Platform komunitas barang hilang &amp; temuan untuk Kabupaten Pati dan sekitarnya. Gratis, aman, dan terpercaya.</p>
+          <a href="https://wa.me/62" class="focus-ring mt-4 inline-flex items-center gap-2 rounded-lg bg-[#25d366] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#1ebe59]" aria-label="Chat via WhatsApp">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+            Chat WhatsApp
+          </a>
+        </div>
+        <nav aria-label="Tautan platform">
+          <p class="mb-4 text-xs font-extrabold uppercase tracking-widest text-slate-500">Platform</p>
+          <ul class="space-y-2.5 text-sm text-slate-400">
+            <li><a href="#" class="focus-ring transition hover:text-white">Jelajahi Laporan</a></li>
+            <li><a href="#" class="focus-ring transition hover:text-white">Laporkan Kehilangan</a></li>
+            <li><a href="#" class="focus-ring transition hover:text-white">Laporkan Penemuan</a></li>
+            <li><a href="#" class="focus-ring transition hover:text-white">Cara Kerja</a></li>
+          </ul>
+        </nav>
+        <nav aria-label="Tautan informasi">
+          <p class="mb-4 text-xs font-extrabold uppercase tracking-widest text-slate-500">Informasi</p>
+          <ul class="space-y-2.5 text-sm text-slate-400">
+            <li><a href="#" class="focus-ring transition hover:text-white">Tentang Kami</a></li>
+            <li><a href="#" class="focus-ring transition hover:text-white">Kebijakan Privasi</a></li>
+            <li><a href="#" class="focus-ring transition hover:text-white">Syarat &amp; Ketentuan</a></li>
+            <li><a href="#" class="focus-ring transition hover:text-white">Kontak</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="mt-10 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
+        <p>&copy; 2024 Find &amp; Found &middot; Kabupaten Pati &middot; Dibuat dengan penuh kepedulian untuk komunitas.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Navigasi bawah">
+    <a href="#" class="focus-ring flex flex-col items-center gap-1 py-2.5 text-[11px] font-bold text-primary-700" aria-current="page">
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+      Beranda
+    </a>
+    <a href="#" class="focus-ring relative flex flex-col items-center" aria-label="Buat laporan baru">
+      <span class="absolute -top-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary-700 text-white shadow-high ring-4 ring-white" aria-hidden="true">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+      </span>
+      <span class="mt-8 text-[11px] font-bold text-muted">Lapor</span>
+    </a>
+    <a href="#terbaru" class="focus-ring flex flex-col items-center gap-1 py-2.5 text-[11px] font-bold text-muted">
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+      Jelajahi
+    </a>
+  </nav>
+
+  <script>
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const btnMenu = document.getElementById('btnMenu');
+    const mobileMenu = document.getElementById('mobileMenu');
+    btnMenu.addEventListener('click', () => {
+      const isHidden = mobileMenu.classList.toggle('hidden');
+      btnMenu.setAttribute('aria-expanded', String(!isHidden));
+    });
+    mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      mobileMenu.classList.add('hidden');
+      btnMenu.setAttribute('aria-expanded', 'false');
+    }));
+
+    const filterPills = document.querySelectorAll('.filter-pill');
+    filterPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        filterPills.forEach(p => {
+          p.classList.remove('active');
+          p.setAttribute('aria-pressed', 'false');
+        });
+        pill.classList.add('active');
+        pill.setAttribute('aria-pressed', 'true');
+      });
+    });
+
+    if (!prefersReducedMotion) {
+      gsap.registerPlugin(ScrollTrigger);
+
+      document.querySelectorAll('[data-reveal]').forEach((el, i) => {
+        gsap.fromTo(el,
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1, y: 0, duration: 0.55, ease: 'back.out(1.4)',
+            scrollTrigger: { trigger: el, start: 'top 88%', once: true }
+          }
+        );
+      });
+
+      gsap.from('#reportGrid article', {
+        opacity: 0, scale: 0.94, y: 16, duration: 0.4,
+        stagger: { each: 0.06, from: 'start', grid: 'auto' },
+        ease: 'back.out(1.4)',
+        scrollTrigger: { trigger: '#reportGrid', start: 'top 85%', once: true }
+      });
+    } else {
+      document.querySelectorAll('[data-reveal]').forEach(el => {
+        el.style.opacity = 1;
+        el.style.transform = 'none';
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+{
+  ".vscode/launch.json": {
+    "mtime": 1788038110.7155082,
+    "seen": 1788098629.6521618,
+    "ast_hash": "21f2db4fdfbd3ca2d337e94fb517cfa7",
+    "semantic_hash": "21f2db4fdfbd3ca2d337e94fb517cfa7"
+  },
+  "convert_to_md.py": {
+    "mtime": 1787500602.8340259,
+    "seen": 1788098629.6521618,
+    "ast_hash": "b1b1abf761f93cf86b58d1dfeffce294",
+    "semantic_hash": "b1b1abf761f93cf86b58d1dfeffce294"
+  },
+  "find-and-found-architecture.visual-check.json": {
+    "mtime": 1788097193.7841709,
+    "seen": 1788098629.6521618,
+    "ast_hash": "a88efef3382717bb0351ba2ec9e822de",
+    "semantic_hash": "a88efef3382717bb0351ba2ec9e822de"
+  },
+  "4-5. jobsheet.md": {
+    "mtime": 1787501655.6070485,
+    "seen": 1788098629.6521618,
+    "ast_hash": "bcbb14fe10ef63d9f4fc1f5db718916e",
+    "semantic_hash": "bcbb14fe10ef63d9f4fc1f5db718916e"
+  },
+  "4.1_Tugas_Perancangan_Find_and_Found_PRD.md": {
+    "mtime": 1787811358.2161517,
+    "seen": 1788098629.6521618,
+    "ast_hash": "a76c29e66292ebb40c65340460ca248f",
+    "semantic_hash": "a76c29e66292ebb40c65340460ca248f"
+  },
+  "F&F Vault/Welcome.md": {
+    "mtime": 1788035835.2397969,
+    "seen": 1788098629.6521618,
+    "ast_hash": "5dce4937496ad2d20178a7578f1a1368",
+    "semantic_hash": "5dce4937496ad2d20178a7578f1a1368"
+  },
+  "Find_and_Found.md": {
+    "mtime": 1787500874.3620079,
+    "seen": 1788098629.6521618,
+    "ast_hash": "75dac7ed4afcac519207c71684e1b4a3",
+    "semantic_hash": "75dac7ed4afcac519207c71684e1b4a3"
+  },
+  "Find_and_Found_Jawaban.md": {
+    "mtime": 1787500874.373122,
+    "seen": 1788098629.6521618,
+    "ast_hash": "bef18bc2b3addd3d57ffaec23719dda9",
+    "semantic_hash": "bef18bc2b3addd3d57ffaec23719dda9"
+  },
+  "Find_and_Found_Jawaban_Excel.md": {
+    "mtime": 1787500874.5807674,
+    "seen": 1788098629.6521618,
+    "ast_hash": "07b31627cbbeacdb7365c1c9101b854d",
+    "semantic_hash": "07b31627cbbeacdb7365c1c9101b854d"
+  },
+  "PRD_Find_and_Found_Ringkas.md": {
+    "mtime": 1787754740.9866574,
+    "seen": 1788098629.6521618,
+    "ast_hash": "55f814b606e85875e4ab6b5267055bc2",
+    "semantic_hash": "55f814b606e85875e4ab6b5267055bc2"
+  },
+  "Product Requirement Document.md": {
+    "mtime": 1787513589.7804139,
+    "seen": 1788098629.6521618,
+    "ast_hash": "8c996b482ac37a2067bd83ad8484358c",
+    "semantic_hash": "8c996b482ac37a2067bd83ad8484358c"
+  },
+  "README.md": {
+    "mtime": 1787663712.556359,
+    "seen": 1788098629.6521618,
+    "ast_hash": "7cca3e8bbc63d0b381e478fcc7194b9a",
+    "semantic_hash": "7cca3e8bbc63d0b381e478fcc7194b9a"
+  },
+  "Stitch_Prompts_Find_and_Found.md": {
+    "mtime": 1787502574.3674507,
+    "seen": 1788098629.6521618,
+    "ast_hash": "700252c5bcc9b0cedaeecc8e74d1298b",
+    "semantic_hash": "700252c5bcc9b0cedaeecc8e74d1298b"
+  },
+  "find-and-found-architecture.html": {
+    "mtime": 1788097187.008175,
+    "seen": 1788098629.6521618,
+    "ast_hash": "7a3505677f86b6cae94fafa9a44ba2c1",
+    "semantic_hash": "7a3505677f86b6cae94fafa9a44ba2c1"
+  },
+  "graphify-out/converted/Find&Found (Jawaban)_508f711c.md": {
+    "mtime": 1788097691.7272837,
+    "seen": 1788098629.6521618,
+    "ast_hash": "14c5058178a505ea29ca37043b4c8705",
+    "semantic_hash": "14c5058178a505ea29ca37043b4c8705"
+  },
+  "landing-page.html": {
+    "mtime": 1788096044.626659,
+    "seen": 1788098629.6521618,
+    "ast_hash": "b1d6cc03139106b40e88d026654a33ac",
+    "semantic_hash": "b1d6cc03139106b40e88d026654a33ac"
+  },
+  "High-fidelity wireframe/Admin_ Categories (/admin/categories) - Hi-Fi.png": {
+    "mtime": 1787541327.1476283,
+    "seen": 1788098629.6521618,
+    "ast_hash": "ca8b948519bac5551fc522ba0e984f7d",
+    "semantic_hash": "ca8b948519bac5551fc522ba0e984f7d"
+  },
+  "High-fidelity wireframe/Admin_ Claims (/admin/claims) - Hi-Fi.png": {
+    "mtime": 1787541327.1520958,
+    "seen": 1788098629.6521618,
+    "ast_hash": "13282bc1ed52963f91c7fe77527d470b",
+    "semantic_hash": "13282bc1ed52963f91c7fe77527d470b"
+  },
+  "High-fidelity wireframe/Admin_ Dashboard (/admin/dashboard) - Hi-Fi.png": {
+    "mtime": 1787541327.1541755,
+    "seen": 1788098629.6521618,
+    "ast_hash": "b9db67fb91613776071bdfdc443c1c3f",
+    "semantic_hash": "b9db67fb91613776071bdfdc443c1c3f"
+  },
+  "High-fidelity wireframe/Admin_ Items (/admin/items) - Hi-Fi.png": {
+    "mtime": 1787541327.1536033,
+    "seen": 1788098629.6521618,
+    "ast_hash": "61b3600fc27389bdac457b6513a5f81e",
+    "semantic_hash": "61b3600fc27389bdac457b6513a5f81e"
+  },
+  "High-fidelity wireframe/Admin_ Users (/admin/users) - Hi-Fi.png": {
+    "mtime": 1787541327.1500976,
+    "seen": 1788098629.6521618,
+    "ast_hash": "5f1282575c1ea825c471ab15d889165b",
+    "semantic_hash": "5f1282575c1ea825c471ab15d889165b"
+  },
+  "High-fidelity wireframe/Public_ About (/about) - Hi-Fi.png": {
+    "mtime": 1787541327.1312256,
+    "seen": 1788098629.6521618,
+    "ast_hash": "02e1c10ee02f1fdd557aae1b9ed6da3b",
+    "semantic_hash": "02e1c10ee02f1fdd557aae1b9ed6da3b"
+  },
+  "High-fidelity wireframe/Public_ Explore (/explore) - Hi-Fi.png": {
+    "mtime": 1787541327.13734,
+    "seen": 1788098629.6521618,
+    "ast_hash": "d82afba878ca0a6a15f6001159c240a8",
+    "semantic_hash": "d82afba878ca0a6a15f6001159c240a8"
+  },
+  "High-fidelity wireframe/Public_ Home (/) - Hi-Fi.png": {
+    "mtime": 1787541327.135294,
+    "seen": 1788098629.6521618,
+    "ast_hash": "8649347ecaa51b58ac3883cdd0eefefb",
+    "semantic_hash": "8649347ecaa51b58ac3883cdd0eefefb"
+  },
+  "High-fidelity wireframe/Public_ Item Detail (/items/_id) - Hi-Fi.png": {
+    "mtime": 1787541327.1342838,
+    "seen": 1788098629.6521618,
+    "ast_hash": "f8aaf707800b128405f1cd69f6fc0351",
+    "semantic_hash": "f8aaf707800b128405f1cd69f6fc0351"
+  },
+  "High-fidelity wireframe/Public_ Login (/login) - Hi-Fi.png": {
+    "mtime": 1787541327.1292262,
+    "seen": 1788098629.6521618,
+    "ast_hash": "15e66c32b59844e44ae63e28f9ff159f",
+    "semantic_hash": "15e66c32b59844e44ae63e28f9ff159f"
+  },
+  "High-fidelity wireframe/Public_ Priority Documents (/priority-documents) - Hi-Fi.png": {
+    "mtime": 1787541327.1327693,
+    "seen": 1788098629.6521618,
+    "ast_hash": "f3492791c9b7950b7d4eda0acd5d6cf9",
+    "semantic_hash": "f3492791c9b7950b7d4eda0acd5d6cf9"
+  },
+  "High-fidelity wireframe/Public_ Register (/register) - Hi-Fi.png": {
+    "mtime": 1787541327.130227,
+    "seen": 1788098629.6521618,
+    "ast_hash": "93f970803ef307c4ffe7896d8a7f7db0",
+    "semantic_hash": "93f970803ef307c4ffe7896d8a7f7db0"
+  },
+  "High-fidelity wireframe/User_ Dashboard (/dashboard) - Hi-Fi.png": {
+    "mtime": 1787541327.1383386,
+    "seen": 1788098629.6521618,
+    "ast_hash": "ad3d90b4b0b8315d0ae7bf2f4b5adb60",
+    "semantic_hash": "ad3d90b4b0b8315d0ae7bf2f4b5adb60"
+  },
+  "High-fidelity wireframe/User_ Incoming Claims (/incoming-claims) - Hi-Fi.png": {
+    "mtime": 1787541327.14511,
+    "seen": 1788098629.6521618,
+    "ast_hash": "f1b3541c15109622c585a8c994aa0dd2",
+    "semantic_hash": "f1b3541c15109622c585a8c994aa0dd2"
+  },
+  "High-fidelity wireframe/User_ My Claims (/my-claims) - Hi-Fi.png": {
+    "mtime": 1787541327.1413403,
+    "seen": 1788098629.6521618,
+    "ast_hash": "e493116a815e0510d2c214c7bb88bcd3",
+    "semantic_hash": "e493116a815e0510d2c214c7bb88bcd3"
+  },
+  "High-fidelity wireframe/User_ My Reports (/my-reports) - Hi-Fi.png": {
+    "mtime": 1787541327.1438527,
+    "seen": 1788098629.6521618,
+    "ast_hash": "317996fcc965602186467c272feaee7b",
+    "semantic_hash": "317996fcc965602186467c272feaee7b"
+  },
+  "High-fidelity wireframe/User_ Notifications (/notifications) - Hi-Fi.png": {
+    "mtime": 1787541327.1443574,
+    "seen": 1788098629.6521618,
+    "ast_hash": "08e39a68cc3a6d066d88574055afd58c",
+    "semantic_hash": "08e39a68cc3a6d066d88574055afd58c"
+  },
+  "High-fidelity wireframe/User_ Profile (/profile) - Hi-Fi.png": {
+    "mtime": 1787541327.1461194,
+    "seen": 1788098629.6521618,
+    "ast_hash": "ddd1da5af3cf215873e54fca1cd6c65c",
+    "semantic_hash": "ddd1da5af3cf215873e54fca1cd6c65c"
+  },
+  "High-fidelity wireframe/User_ Report Found (/report/found) - Hi-Fi.png": {
+    "mtime": 1787541327.1393363,
+    "seen": 1788098629.6521618,
+    "ast_hash": "440acc555022f427771270d9c13400ad",
+    "semantic_hash": "440acc555022f427771270d9c13400ad"
+  },
+  "High-fidelity wireframe/User_ Report Lost (/report/lost) - Hi-Fi.png": {
+    "mtime": 1787541327.1413403,
+    "seen": 1788098629.6521618,
+    "ast_hash": "fe3fb7f3dc11e32c7918793ce50465b8",
+    "semantic_hash": "fe3fb7f3dc11e32c7918793ce50465b8"
+  },
+  "Low-fidelity wireframe/Admin_ Categories (/admin/categories).png": {
+    "mtime": 1787541297.0500162,
+    "seen": 1788098629.6521618,
+    "ast_hash": "d2bb201a219b99c19b506751bcf5e608",
+    "semantic_hash": "d2bb201a219b99c19b506751bcf5e608"
+  },
+  "Low-fidelity wireframe/Admin_ Claims (/admin/claims).png": {
+    "mtime": 1787541297.0510163,
+    "seen": 1788098629.6521618,
+    "ast_hash": "37f11ef5a8dfd45499883ac9d5720acb",
+    "semantic_hash": "37f11ef5a8dfd45499883ac9d5720acb"
+  },
+  "Low-fidelity wireframe/Admin_ Dashboard (/admin/dashboard).png": {
+    "mtime": 1787541297.052014,
+    "seen": 1788098629.6521618,
+    "ast_hash": "a1aa04ad086f851e35fd951611e6fea5",
+    "semantic_hash": "a1aa04ad086f851e35fd951611e6fea5"
+  },
+  "Low-fidelity wireframe/Admin_ Items (/admin/items).png": {
+    "mtime": 1787541297.0490136,
+    "seen": 1788098629.6521618,
+    "ast_hash": "3aa3f56407b64a93219789a6f18105fd",
+    "semantic_hash": "3aa3f56407b64a93219789a6f18105fd"
+  },
+  "Low-fidelity wireframe/Admin_ Users (/admin/users).png": {
+    "mtime": 1787541297.0480144,
+    "seen": 1788098629.6521618,
+    "ast_hash": "e3be19e10ea6c4eb6a0c13deccd0a087",
+    "semantic_hash": "e3be19e10ea6c4eb6a0c13deccd0a087"
+  },
+  "Low-fidelity wireframe/Public_ About (/about).png": {
+    "mtime": 1787541297.0384042,
+    "seen": 1788098629.6521618,
+    "ast_hash": "765052b5f83c5947eeafd09acc143492",
+    "semantic_hash": "765052b5f83c5947eeafd09acc143492"
+  },
+  "Low-fidelity wireframe/Public_ Explore (/explore).png": {
+    "mtime": 1787541297.0337744,
+    "seen": 1788098629.6521618,
+    "ast_hash": "eb1a24e5374683b503e4c06e9ce5703b",
+    "semantic_hash": "eb1a24e5374683b503e4c06e9ce5703b"
+  },
+  "Low-fidelity wireframe/Public_ Home (/).png": {
+    "mtime": 1787541297.0321875,
+    "seen": 1788098629.6521618,
+    "ast_hash": "4e7f12101adc867264172cbae5bc379e",
+    "semantic_hash": "4e7f12101adc867264172cbae5bc379e"
+  },
+  "Low-fidelity wireframe/Public_ Item Detail (/items/_id).png": {
+    "mtime": 1787541297.035371,
+    "seen": 1788098629.6521618,
+    "ast_hash": "3202b18a1111f8bea4693c676352a477",
+    "semantic_hash": "3202b18a1111f8bea4693c676352a477"
+  },
+  "Low-fidelity wireframe/Public_ Login (/login).png": {
+    "mtime": 1787541297.0384042,
+    "seen": 1788098629.6521618,
+    "ast_hash": "15d785abfda3373e0fb0f473c00f29bb",
+    "semantic_hash": "15d785abfda3373e0fb0f473c00f29bb"
+  },
+  "Low-fidelity wireframe/Public_ Priority Documents (/priority-documents).png": {
+    "mtime": 1787541297.036404,
+    "seen": 1788098629.6521618,
+    "ast_hash": "f73eb3d26f8cc1b281f8f82998fb4c4f",
+    "semantic_hash": "f73eb3d26f8cc1b281f8f82998fb4c4f"
+  },
+  "Low-fidelity wireframe/Public_ Register (/register).png": {
+    "mtime": 1787541297.039405,
+    "seen": 1788098629.6521618,
+    "ast_hash": "7977dae62be05e4a38e1efb0130825d0",
+    "semantic_hash": "7977dae62be05e4a38e1efb0130825d0"
+  },
+  "Low-fidelity wireframe/User_ Dashboard (/dashboard).png": {
+    "mtime": 1787541297.0428653,
+    "seen": 1788098629.6521618,
+    "ast_hash": "b10cacb27a163caf30cd5f241d00c44d",
+    "semantic_hash": "b10cacb27a163caf30cd5f241d00c44d"
+  },
+  "Low-fidelity wireframe/User_ Incoming Claims (/incoming-claims).png": {
+    "mtime": 1787541297.046018,
+    "seen": 1788098629.6521618,
+    "ast_hash": "14ea737f3cf6b55b2a685a32e6394f9c",
+    "semantic_hash": "14ea737f3cf6b55b2a685a32e6394f9c"
+  },
+  "Low-fidelity wireframe/User_ My Claims (/my-claims).png": {
+    "mtime": 1787541297.0439076,
+    "seen": 1788098629.6521618,
+    "ast_hash": "434135e26d660744b71a5e77bcc38ba8",
+    "semantic_hash": "434135e26d660744b71a5e77bcc38ba8"
+  },
+  "Low-fidelity wireframe/User_ My Reports (/my-reports).png": {
+    "mtime": 1787541297.0445917,
+    "seen": 1788098629.6521618,
+    "ast_hash": "b216e424d0b63f39463d33da48cd16c2",
+    "semantic_hash": "b216e424d0b63f39463d33da48cd16c2"
+  },
+  "Low-fidelity wireframe/User_ Notifications (/notifications).png": {
+    "mtime": 1787541297.0445917,
+    "seen": 1788098629.6521618,
+    "ast_hash": "45c6ef0f261b99990b57f872af5aa60c",
+    "semantic_hash": "45c6ef0f261b99990b57f872af5aa60c"
+  },
+  "Low-fidelity wireframe/User_ Profile (/profile).png": {
+    "mtime": 1787541297.0470176,
+    "seen": 1788098629.6521618,
+    "ast_hash": "5fb6b75b46b80e4ce0a3b30ac260c33f",
+    "semantic_hash": "5fb6b75b46b80e4ce0a3b30ac260c33f"
+  },
+  "Low-fidelity wireframe/User_ Report Found (/report/found).png": {
+    "mtime": 1787541297.0418646,
+    "seen": 1788098629.6521618,
+    "ast_hash": "1b60e36122160557ac8383c890f18da3",
+    "semantic_hash": "1b60e36122160557ac8383c890f18da3"
+  },
+  "Low-fidelity wireframe/User_ Report Lost (/report/lost).png": {
+    "mtime": 1787541297.0404036,
+    "seen": 1788098629.6521618,
+    "ast_hash": "4ca11d50a50f2508afb574ca90ca5ee1",
+    "semantic_hash": "4ca11d50a50f2508afb574ca90ca5ee1"
+  }
+}
