@@ -1,0 +1,172 @@
+@startuml Find_Found_Use_Case_Diagram
+
+title Use Case Diagram — Find & Found\nPlatform Pelaporan Barang Hilang & Temuan (Kabupaten Pati)
+
+skinparam ActorStyle awesome
+skinparam usecase {
+    BackgroundColor #FAFAFA
+    BorderColor #4A90D9
+    ArrowColor #555555
+    FontSize 12
+}
+skinparam actor {
+    BackgroundColor #E8F4FD
+    BorderColor #4A90D9
+    FontSize 12
+    FontStyle bold
+}
+skinparam package {
+    BackgroundColor #F9FAFB
+    BorderColor #CCCCCC
+    FontSize 13
+    FontStyle bold
+}
+
+' ============================================================
+' AKTOR
+' ============================================================
+actor "Guest\n(Belum Login)" as Guest
+actor "User\n(Terdaftar)" as User
+actor "Owner\n(Pemilik)" as Owner
+actor "Finder\n(Penemu)" as Finder
+actor "Admin" as Admin
+
+' Generalisasi: Owner & Finder adalah spesialisasi User
+User <|-- Owner
+User <|-- Finder
+
+' ============================================================
+' SISTEM
+' ============================================================
+rectangle "Sistem Find & Found" {
+
+    ' ---------------------------
+    ' USE CASE PUBLIK (Guest)
+    ' ---------------------------
+    package "Akses Publik" {
+        usecase "Melihat Daftar Laporan" as UC01
+        usecase "Mencari & Filter Barang" as UC02
+        usecase "Melihat Detail Laporan" as UC03
+        usecase "Melihat Peta Sebaran Barang" as UC04
+    }
+
+    ' ---------------------------
+    ' AUTENTIKASI
+    ' ---------------------------
+    package "Autentikasi" {
+        usecase "Mendaftar Akun" as UC05
+        usecase "Login" as UC06
+        usecase "Logout" as UC07
+        usecase "Memperbarui Profil" as UC08
+    }
+
+    ' ---------------------------
+    ' FITUR FINDER (PENEMU)
+    ' ---------------------------
+    package "Finder — Penemu Barang" {
+        usecase "Melaporkan Barang Temuan" as UC09
+        usecase "Upload Foto Barang" as UC10
+        usecase "Menandai Lokasi di Peta" as UC11
+        usecase "Mengelola Laporan Sendiri" as UC12
+        usecase "Melihat Klaim Masuk" as UC13
+        usecase "Menyetujui Klaim" as UC14
+        usecase "Menolak Klaim" as UC15
+        usecase "Koordinasi via WA / Instagram" as UC16
+        usecase "Menutup Laporan (Selesai)" as UC17
+    }
+
+    ' ---------------------------
+    ' FITUR OWNER (PEMILIK)
+    ' ---------------------------
+    package "Owner — Pemilik Barang" {
+        usecase "Melaporkan Barang Hilang" as UC18
+        usecase "Mencari Barang Hilang" as UC19
+        usecase "Mengajukan Klaim Kepemilikan" as UC20
+        usecase "Upload Bukti Kepemilikan" as UC21
+        usecase "Memantau Status Klaim" as UC22
+        usecase "Mendapatkan Kontak Finder" as UC23
+    }
+
+    ' ---------------------------
+    ' FITUR BERSAMA (USER UMUM)
+    ' ---------------------------
+    package "Fitur User Umum" {
+        usecase "Menerima Notifikasi" as UC24
+        usecase "Menerima Smart Match Alert" as UC25
+        usecase "Melihat Profil & Reputasi" as UC26
+    }
+
+    ' ---------------------------
+    ' FITUR ADMIN
+    ' ---------------------------
+    package "Admin Panel" {
+        usecase "Mengelola Laporan (CRUD)" as UC27
+        usecase "Mengelola Pengguna" as UC28
+        usecase "Mengelola Kategori" as UC29
+        usecase "Memoderasi Konten" as UC30
+        usecase "Melihat Dashboard & Statistik" as UC31
+    }
+
+}
+
+' ============================================================
+' ASOSIASI AKTOR → USE CASE
+' ============================================================
+
+' Guest
+Guest --> UC01
+Guest --> UC02
+Guest --> UC03
+Guest --> UC04
+Guest --> UC05
+Guest --> UC06
+
+' User (umum)
+User --> UC06
+User --> UC07
+User --> UC08
+User --> UC24
+User --> UC25
+User --> UC26
+
+' Owner
+Owner --> UC18
+Owner --> UC19
+Owner --> UC20
+Owner --> UC22
+Owner --> UC23
+
+' Finder
+Finder --> UC09
+Finder --> UC12
+Finder --> UC13
+Finder --> UC14
+Finder --> UC15
+Finder --> UC17
+
+' Admin
+Admin --> UC27
+Admin --> UC28
+Admin --> UC29
+Admin --> UC30
+Admin --> UC31
+
+' ============================================================
+' RELASI <<include>> — USE CASE WAJIB
+' ============================================================
+UC09 ..> UC06 : <<include>>\n(wajib login)
+UC09 ..> UC11 : <<include>>\n(wajib tandai lokasi)
+UC18 ..> UC06 : <<include>>\n(wajib login)
+UC20 ..> UC06 : <<include>>\n(wajib login)
+UC20 ..> UC03 : <<include>>\n(lihat detail dulu)
+UC14 ..> UC16 : <<include>>\n(buka kontak setelah setuju)
+
+' ============================================================
+' RELASI <<extend>> — USE CASE OPSIONAL/KONDISIONAL
+' ============================================================
+UC10 ..> UC09 : <<extend>>\n(foto opsional)
+UC21 ..> UC20 : <<extend>>\n(bukti foto opsional)
+UC23 ..> UC22 : <<extend>>\n(hanya jika klaim disetujui)
+UC25 ..> UC19 : <<extend>>\n(alert jika ada kecocokan)
+
+@enduml
