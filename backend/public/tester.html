@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find & Found — API Tester & Database Inspector</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans">
+  <div id="app" class="flex flex-col min-h-screen">
+    
+    <!-- TOP NAVBAR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-blue-500/20">
+            F&F
+          </div>
+          <div>
+            <h1 class="font-bold text-lg leading-none text-slate-800">Find & Found <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold uppercase">API Tester</span></h1>
+            <p class="text-xs text-slate-500 mt-0.5">Interactive Testing Suite & Live Database Inspector</p>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <nav class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+          <button 
+            @click="currentTab = 'tester'" 
+            :class="currentTab === 'tester' ? 'bg-white shadow text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'"
+            class="px-4 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2">
+            <span>⚡</span> API Tester
+          </button>
+          <button 
+            @click="currentTab = 'database'; fetchDbSchema()" 
+            :class="currentTab === 'database' ? 'bg-white shadow text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'"
+            class="px-4 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2">
+            <span>🗄️</span> Database Inspector
+          </button>
+          <button 
+            @click="currentTab = 'erd'" 
+            :class="currentTab === 'erd' ? 'bg-white shadow text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'"
+            class="px-4 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2">
+            <span>📐</span> ERD & Architecture
+          </button>
+        </nav>
+
+        <!-- AUTH QUICK ACTIONS -->
+        <div class="flex items-center gap-2">
+          <div v-if="activeUser" class="flex items-center gap-2 text-xs bg-slate-100 py-1.5 px-3 rounded-lg border border-slate-200">
+            <span class="w-2 h-2 rounded-full" :class="activeUser.role === 'admin' ? 'bg-amber-500' : 'bg-emerald-500'"></span>
+            <span class="font-medium text-slate-700">{{ activeUser.name }}</span>
+            <span class="px-1.5 py-0.2 rounded text-[10px] uppercase font-bold" :class="activeUser.role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'">
+              {{ activeUser.role }}
+            </span>
+            <button @click="logout" title="Clear Token / Logout" class="text-slate-400 hover:text-red-600 ml-1 font-bold">×</button>
+          </div>
+          <div v-else class="flex items-center gap-1.5">
+            <button @click="quickLogin('admin')" :disabled="loadingAuth" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-medium px-2.5 py-1.5 rounded-lg transition-colors">
+              🔑 Quick Admin
+            </button>
+            <button @click="quickLogin('user')" :disabled="loadingAuth" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-300 font-medium px-2.5 py-1.5 rounded-lg transition-colors">
+              👤 Quick User
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN BODY -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+      <!-- ================= TAB 1: API TESTER ================= -->
+      <div v-show="currentTab === 'tester'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- LEFT: ENDPOINTS LIST -->
+        <aside class="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+          <div class="mb-3">
+            <input 
+              v-model="searchQuery" 
+              placeholder="Cari endpoint..." 
+              class="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2 px-1">
+            <span>TOTAL: {{ filteredEndpoints.length }} ENDPOINTS</span>
+            <button @click="expandAll = !expandAll" class="text-blue-600 hover:underline">
+              {{ expandAll ? 'Tutup Semua' : 'Buka Semua' }}
+            </button>
+          </div>
+
+          <div class="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-1 custom-scroll">
+            <div v-for="(group, groupName) in groupedEndpoints" :key="groupName" class="border border-slate-100 rounded-xl overflow-hidden">
+              <button 
+                @click="toggleGroup(groupName)"
+                class="w-full flex items-center justify-between px-3 py-2 bg-slate-50 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors">
+                <span class="flex items-center gap-1.5">
+                  <span>{{ getGroupIcon(groupName) }}</span>
+                  <span>{{ groupName }}</span>
+                  <span class="text-[10px] font-normal text-slate-400">({{ group.length }})</span>
+                </span>
+                <span class="text-slate-400">{{ isGroupOpen(groupName) ? '▾' : '▸' }}</span>
+              </button>
+
+              <div v-show="isGroupOpen(groupName)" class="divide-y divide-slate-50 bg-white">
+                <button 
+                  v-for="ep in group" 
+                  :key="ep.id"
+                  @click="selectEndpoint(ep)"
+                  :class="selectedEndpoint?.id === ep.id ? 'bg-blue-50/80 border-l-4 border-blue-600' : 'hover:bg-slate-50 border-l-4 border-transparent'"
+                  class="w-full text-left px-3 py-2 text-xs flex items-center gap-2 transition-all">
+                  <span 
+                    :class="getMethodClass(ep.method)" 
+                    class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold tracking-tight uppercase">
+                    {{ ep.method }}
+                  </span>
+                  <div class="flex-1 truncate">
+                    <p class="font-medium text-slate-800 truncate">{{ ep.name }}</p>
+                    <p class="text-[11px] font-mono text-slate-400 truncate">{{ ep.path }}</p>
+                  </div>
+                  <span v-if="ep.auth === 'admin'" class="text-[10px] text-amber-600 font-bold" title="Admin only">🛡️</span>
+                  <span v-else-if="ep.auth === 'user'" class="text-[10px] text-blue-600 font-bold" title="Requires Token">🔒</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- RIGHT: TEST BENCH & CONSOLE -->
+        <div class="lg:col-span-8 space-y-4">
+          
+          <!-- REQUEST CARD -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span :class="getMethodClass(selectedEndpoint.method)" class="px-2 py-0.5 rounded-md text-xs font-mono font-bold uppercase">
+                    {{ selectedEndpoint.method }}
+                  </span>
+                  <h2 class="text-base font-bold text-slate-800">{{ selectedEndpoint.name }}</h2>
+                  <span v-if="selectedEndpoint.auth === 'public'" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">Public</span>
+                  <span v-else-if="selectedEndpoint.auth === 'user'" class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">Auth User</span>
+                  <span v-else-if="selectedEndpoint.auth === 'admin'" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">Admin Only</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">{{ selectedEndpoint.description }}</p>
+              </div>
+            </div>
+
+            <!-- URL & METHOD BAR -->
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1.5" title="Base API URL (bisa disesuaikan)">
+                <span class="text-[10px] uppercase font-bold text-slate-400">BASE:</span>
+                <input v-model="baseUrl" class="text-xs font-mono bg-transparent text-slate-700 font-semibold focus:outline-none w-44 sm:w-56" />
+              </div>
+              <input 
+                v-model="requestPath" 
+                class="flex-1 font-mono text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+              />
+              <button 
+                @click="sendRequest" 
+                :disabled="isLoading"
+                class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-xs px-5 py-2 rounded-xl transition-all shadow-md shadow-blue-500/20 flex items-center gap-2">
+                <span v-if="isLoading" class="animate-spin">⏳</span>
+                <span v-else>🚀</span>
+                <span>Send</span>
+              </button>
+            </div>
+
+            <!-- REQUEST TABS -->
+            <div class="border-b border-slate-200 flex gap-4 text-xs font-medium">
+              <button 
+                @click="reqTab = 'body'" 
+                :class="reqTab === 'body' ? 'border-b-2 border-blue-600 text-blue-600 font-bold pb-2' : 'text-slate-500 pb-2 hover:text-slate-800'">
+                Body (JSON / Form)
+              </button>
+              <button 
+                @click="reqTab = 'headers'" 
+                :class="reqTab === 'headers' ? 'border-b-2 border-blue-600 text-blue-600 font-bold pb-2' : 'text-slate-500 pb-2 hover:text-slate-800'">
+                Headers ({{ Object.keys(customHeaders).length + (bearerToken ? 1 : 0) }})
+              </button>
+              <button 
+                @click="reqTab = 'token'" 
+                :class="reqTab === 'token' ? 'border-b-2 border-blue-600 text-blue-600 font-bold pb-2' : 'text-slate-500 pb-2 hover:text-slate-800'">
+                Bearer Token
+              </button>
+            </div>
+
+            <!-- TAB CONTENT: BODY -->
+            <div v-show="reqTab === 'body'" class="space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-500">Request Body Payload:</span>
+                <div class="flex items-center gap-3">
+                  <label class="flex items-center gap-1.5 cursor-pointer text-slate-600">
+                    <input type="radio" value="json" v-model="bodyType" class="text-blue-600">
+                    <span>Raw JSON</span>
+                  </label>
+                  <label class="flex items-center gap-1.5 cursor-pointer text-slate-600">
+                    <input type="radio" value="form" v-model="bodyType" class="text-blue-600">
+                    <span>Multipart (Files)</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- RAW JSON EDITOR -->
+              <div v-if="bodyType === 'json'">
+                <textarea 
+                  v-model="rawJsonBody" 
+                  rows="9"
+                  placeholder="{}"
+                  class="w-full font-mono text-xs bg-slate-900 text-emerald-400 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 custom-scroll border border-slate-800"
+                ></textarea>
+              </div>
+
+              <!-- MULTIPART FORM-DATA BUILDER -->
+              <div v-else class="space-y-2 border border-slate-200 rounded-xl p-3 bg-slate-50">
+                <div v-for="(val, key) in formFields" :key="key" class="grid grid-cols-12 gap-2 items-center text-xs">
+                  <div class="col-span-4 font-mono font-medium text-slate-700 truncate">{{ key }}</div>
+                  <div class="col-span-8">
+                    <input 
+                      v-if="!key.includes('photo') && !key.includes('avatar')" 
+                      v-model="formFields[key]" 
+                      class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <input 
+                      v-else 
+                      type="file" 
+                      :ref="el => fileInputs[key] = el"
+                      class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB CONTENT: HEADERS -->
+            <div v-show="reqTab === 'headers'" class="space-y-2 text-xs">
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 font-mono">
+                <div class="flex items-center justify-between text-slate-600">
+                  <span class="font-bold">Accept:</span>
+                  <span>application/json</span>
+                </div>
+                <div v-if="bodyType === 'json'" class="flex items-center justify-between text-slate-600">
+                  <span class="font-bold">Content-Type:</span>
+                  <span>application/json</span>
+                </div>
+                <div v-if="bearerToken" class="flex items-center justify-between text-blue-700 truncate">
+                  <span class="font-bold">Authorization:</span>
+                  <span class="truncate ml-4">Bearer {{ bearerToken.substring(0, 30) }}...</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB CONTENT: TOKEN -->
+            <div v-show="reqTab === 'token'" class="space-y-2">
+              <label class="block text-xs font-medium text-slate-600">Bearer Token Aktif (Sanctum)</label>
+              <textarea 
+                v-model="bearerToken" 
+                rows="3" 
+                placeholder="Paste Bearer Token di sini..."
+                class="w-full font-mono text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-400">Token otomatis diinjeksi saat login sukses</span>
+                <button @click="bearerToken = ''" class="text-red-500 hover:underline">Hapus Token</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RESPONSE CARD -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <h3 class="text-sm font-bold text-slate-800">Response</h3>
+                <span 
+                  v-if="responseStatus" 
+                  :class="getStatusClass(responseStatus)" 
+                  class="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono">
+                  {{ responseStatus }} {{ responseStatusText }}
+                </span>
+                <span v-if="responseTime !== null" class="text-xs text-slate-400 font-mono">
+                  ⏱️ {{ responseTime }} ms
+                </span>
+              </div>
+              <button 
+                v-if="responseBody" 
+                @click="copyResponse" 
+                class="text-xs text-slate-500 hover:text-blue-600 font-medium px-2 py-1 rounded hover:bg-slate-100 transition-colors">
+                📋 {{ copyLabel }}
+              </button>
+            </div>
+
+            <div class="relative">
+              <pre class="w-full max-h-[380px] overflow-y-auto bg-slate-950 text-slate-100 text-xs p-4 rounded-xl custom-scroll font-mono leading-relaxed"><code v-html="formattedResponseBody"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 2: DATABASE INSPECTOR ================= -->
+      <div v-show="currentTab === 'database'" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">🗄️ Database Inspector (MySQL)</h2>
+            <p class="text-xs text-slate-500">Melihat langsung struktur tabel, kolom, constraint, dan data riil di database <code class="text-blue-600 font-mono font-bold">findfound</code></p>
+          </div>
+          <button 
+            @click="fetchDbSchema" 
+            class="text-xs bg-white border border-slate-200 hover:bg-slate-50 font-medium px-3.5 py-2 rounded-xl transition-colors shadow-sm flex items-center gap-1.5">
+            <span>🔄</span>
+            <span>Refresh Database</span>
+          </button>
+        </div>
+
+        <div v-if="dbLoading" class="p-12 text-center text-slate-400 text-xs">
+          <span class="animate-spin inline-block mr-2">⏳</span> Mengambil skema database...
+        </div>
+
+        <div v-else-if="!dbSchema || Object.keys(dbSchema).length === 0" class="p-8 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-xs">
+          ⚠️ Tidak dapat membaca database. Pastikan server Laravel aktif di <code class="font-bold">http://localhost:8000</code> dan koneksi MySQL terhubung.
+        </div>
+
+        <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- TABLE PICKER LIST -->
+          <div class="lg:col-span-3 bg-white border border-slate-200 rounded-2xl p-3 shadow-sm space-y-1">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider px-2 py-1">TABEL DATABASE</h3>
+            <button 
+              v-for="(info, tName) in dbSchema" 
+              :key="tName"
+              @click="activeDbTable = tName"
+              :class="activeDbTable === tName ? 'bg-blue-50 text-blue-700 font-bold border-l-4 border-blue-600' : 'text-slate-600 hover:bg-slate-50 border-l-4 border-transparent'"
+              class="w-full text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-all">
+              <span class="font-mono">{{ tName }}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold font-mono">
+                {{ info.count }} baris
+              </span>
+            </button>
+          </div>
+
+          <!-- TABLE DETAIL VIEW -->
+          <div class="lg:col-span-9 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-base font-bold text-slate-800 font-mono">Tabel: {{ activeDbTable }}</h3>
+                <p class="text-xs text-slate-400">Total baris: <span class="font-bold text-slate-700">{{ dbSchema[activeDbTable]?.count }}</span></p>
+              </div>
+              <div class="flex gap-2 text-xs font-medium bg-slate-100 p-1 rounded-xl">
+                <button 
+                  @click="dbSubTab = 'columns'" 
+                  :class="dbSubTab === 'columns' ? 'bg-white shadow text-blue-600 font-bold' : 'text-slate-600'" 
+                  class="px-3 py-1 rounded-lg transition-all">
+                  Struktur Kolom ({{ dbSchema[activeDbTable]?.columns.length }})
+                </button>
+                <button 
+                  @click="dbSubTab = 'data'" 
+                  :class="dbSubTab === 'data' ? 'bg-white shadow text-blue-600 font-bold' : 'text-slate-600'" 
+                  class="px-3 py-1 rounded-lg transition-all">
+                  Data Langsung ({{ dbSchema[activeDbTable]?.samples.length }})
+                </button>
+              </div>
+            </div>
+
+            <!-- SUB-TAB 1: COLUMNS STRUCTURE -->
+            <div v-show="dbSubTab === 'columns'" class="overflow-x-auto custom-scroll">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
+                    <th class="py-2.5 px-3">Kolom (Field)</th>
+                    <th class="py-2.5 px-3">Tipe Data</th>
+                    <th class="py-2.5 px-3">Null</th>
+                    <th class="py-2.5 px-3">Key</th>
+                    <th class="py-2.5 px-3">Default</th>
+                    <th class="py-2.5 px-3">Extra</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-mono">
+                  <tr v-for="col in dbSchema[activeDbTable]?.columns" :key="col.Field" class="hover:bg-slate-50/50">
+                    <td class="py-2 px-3 font-semibold text-slate-800 flex items-center gap-1.5">
+                      <span v-if="col.Key === 'PRI'" class="text-amber-500 font-bold" title="Primary Key">🔑</span>
+                      <span v-else-if="col.Key === 'UNI'" class="text-blue-500 font-bold" title="Unique">💎</span>
+                      <span v-else-if="col.Key === 'MUL'" class="text-purple-500 font-bold" title="Foreign Key">🔗</span>
+                      <span>{{ col.Field }}</span>
+                    </td>
+                    <td class="py-2 px-3 text-blue-600">{{ col.Type }}</td>
+                    <td class="py-2 px-3 text-slate-500">{{ col.Null }}</td>
+                    <td class="py-2 px-3">
+                      <span v-if="col.Key" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">{{ col.Key }}</span>
+                      <span v-else class="text-slate-300">-</span>
+                    </td>
+                    <td class="py-2 px-3 text-slate-500">{{ col.Default ?? 'NULL' }}</td>
+                    <td class="py-2 px-3 text-slate-400 text-[11px]">{{ col.Extra || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- SUB-TAB 2: SAMPLES DATA -->
+            <div v-show="dbSubTab === 'data'">
+              <div v-if="!dbSchema[activeDbTable]?.samples.length" class="p-8 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                Tabel ini masih kosong (0 baris). Buat data melalui tab <button @click="currentTab = 'tester'" class="text-blue-600 underline font-bold">API Tester</button>!
+              </div>
+              <div v-else class="overflow-x-auto max-h-[420px] custom-scroll border border-slate-100 rounded-xl">
+                <table class="w-full text-left text-xs border-collapse font-mono">
+                  <thead class="sticky top-0 bg-slate-100 border-b border-slate-200 text-slate-600 text-[11px] uppercase">
+                    <tr>
+                      <th v-for="col in dbSchema[activeDbTable]?.columns" :key="col.Field" class="py-2 px-3 whitespace-nowrap">
+                        {{ col.Field }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 bg-white">
+                    <tr v-for="(row, idx) in dbSchema[activeDbTable]?.samples" :key="idx" class="hover:bg-blue-50/30">
+                      <td v-for="col in dbSchema[activeDbTable]?.columns" :key="col.Field" class="py-2 px-3 whitespace-nowrap text-slate-700 max-w-[200px] truncate" :title="row[col.Field]">
+                        {{ formatTableCell(row[col.Field]) }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= TAB 3: ERD & ARCHITECTURE ================= -->
+      <div v-show="currentTab === 'erd'" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800">📐 Entity Relationship Diagram (ERD)</h2>
+          <p class="text-xs text-slate-500">Struktur relasi tabel di sistem Find & Found (MySQL)</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs font-mono">
+          <!-- CARD USERS -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="bg-blue-600 text-white px-3 py-2 font-bold flex justify-between">
+              <span>users</span>
+              <span class="text-blue-200 text-[10px]">Entity</span>
+            </div>
+            <div class="p-3 bg-slate-50 space-y-1 text-slate-700">
+              <div class="font-bold text-amber-600">🔑 id (PK)</div>
+              <div>name : varchar(100)</div>
+              <div class="text-blue-600">💎 email : varchar(100) [UNIQUE]</div>
+              <div>password : varchar(255)</div>
+              <div>phone_number : varchar(20)</div>
+              <div>instagram_handle : varchar(50)</div>
+              <div>domicile_city : varchar(50)</div>
+              <div>avatar_url : varchar(255)</div>
+              <div>reputation_points : int</div>
+              <div>role : enum('user','admin')</div>
+            </div>
+          </div>
+
+          <!-- CARD CATEGORIES -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="bg-indigo-600 text-white px-3 py-2 font-bold flex justify-between">
+              <span>categories</span>
+              <span class="text-indigo-200 text-[10px]">Master</span>
+            </div>
+            <div class="p-3 bg-slate-50 space-y-1 text-slate-700">
+              <div class="font-bold text-amber-600">🔑 id (PK)</div>
+              <div>name : varchar(50)</div>
+              <div class="text-blue-600">💎 slug : varchar(60) [UNIQUE]</div>
+              <div>icon : varchar(50)</div>
+              <div class="text-red-600 font-bold">is_priority_document : bool</div>
+            </div>
+          </div>
+
+          <!-- CARD ITEMS -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="bg-emerald-600 text-white px-3 py-2 font-bold flex justify-between">
+              <span>items</span>
+              <span class="text-emerald-200 text-[10px]">Core</span>
+            </div>
+            <div class="p-3 bg-slate-50 space-y-1 text-slate-700">
+              <div class="font-bold text-amber-600">🔑 id (PK)</div>
+              <div class="text-purple-600">🔗 user_id -> users.id</div>
+              <div class="text-purple-600">🔗 category_id -> categories.id</div>
+              <div class="font-bold text-emerald-700">type : enum('lost','found')</div>
+              <div>title : varchar(150)</div>
+              <div>description : text</div>
+              <div class="text-amber-700 font-semibold">secret_details : text</div>
+              <div>incident_date : datetime</div>
+              <div>location_name : varchar(150)</div>
+              <div>district : varchar(60)</div>
+              <div>status : enum('open','claimed','resolved','cancelled')</div>
+            </div>
+          </div>
+
+          <!-- CARD ITEM_PHOTOS -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="bg-teal-600 text-white px-3 py-2 font-bold flex justify-between">
+              <span>item_photos</span>
+              <span class="text-teal-200 text-[10px]">Gallery</span>
+            </div>
+            <div class="p-3 bg-slate-50 space-y-1 text-slate-700">
+              <div class="font-bold text-amber-600">🔑 id (PK)</div>
+              <div class="text-purple-600">🔗 item_id -> items.id [CASCADE]</div>
+              <div>photo_url : varchar(255)</div>
+            </div>
+          </div>
+
+          <!-- CARD CLAIMS -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="bg-purple-600 text-white px-3 py-2 font-bold flex justify-between">
+              <span>claims</span>
+              <span class="text-purple-200 text-[10px]">Verification</span>
+            </div>
+            <div class="p-3 bg-slate-50 space-y-1 text-slate-700">
+              <div class="font-bold text-amber-600">🔑 id (PK)</div>
+              <div class="text-purple-600">🔗 item_id -> items.id</div>
+              <div class="text-purple-600">🔗 claimant_id -> users.id</div>
+              <div>proof_description : text</div>
+              <div>proof_photo_url : varchar(255)</div>
+              <div class="font-bold text-purple-700">status : enum('pending','approved','rejected')</div>
+              <div>response_notes : text</div>
+            </div>
+          </div>
+
+          <!-- CARD NOTIFICATIONS -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="bg-rose-600 text-white px-3 py-2 font-bold flex justify-between">
+              <span>notifications</span>
+              <span class="text-rose-200 text-[10px]">Alerts</span>
+            </div>
+            <div class="p-3 bg-slate-50 space-y-1 text-slate-700">
+              <div class="font-bold text-amber-600">🔑 id (PK)</div>
+              <div class="text-purple-600">🔗 user_id -> users.id [CASCADE]</div>
+              <div>type : varchar(50)</div>
+              <div>data : json</div>
+              <div>read_at : timestamp</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400">
+      Find & Found Development Suite • Backend API on <code class="font-mono text-blue-600">localhost:8000/api/v1</code>
+    </footer>
+
+  </div>
+
+  <!-- VUE APPLICATION LOGIC -->
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const baseUrl = ref(
+          window.location.protocol.startsWith('http')
+            ? `${window.location.origin}/api/v1`
+            : 'http://127.0.0.1:8000/api/v1'
+        );
+        const currentTab = ref('tester');
+        const reqTab = ref('body');
+        const dbSubTab = ref('columns');
+        const searchQuery = ref('');
+        const expandAll = ref(true);
+        const openGroups = ref({ 'Auth': true, 'Items': true, 'Claims': true, 'Categories': true, 'Notifications': true, 'Admin': true, 'Profile': true });
+
+        const bearerToken = ref(localStorage.getItem('ff_bearer_token') || '');
+        const activeUser = ref(JSON.parse(localStorage.getItem('ff_active_user') || 'null'));
+        const loadingAuth = ref(false);
+
+        const requestPath = ref('/categories');
+        const bodyType = ref('json');
+        const rawJsonBody = ref('{}');
+        const formFields = ref({});
+        const fileInputs = ref({});
+        const customHeaders = ref({});
+
+        const isLoading = ref(false);
+        const responseStatus = ref(null);
+        const responseStatusText = ref('');
+        const responseTime = ref(null);
+        const responseBody = ref(null);
+        const copyLabel = ref('Copy Response');
+
+        // Database inspector state
+        const dbLoading = ref(false);
+        const dbSchema = ref(null);
+        const activeDbTable = ref('users');
+
+        // PRESET ENDPOINTS CATALOG (ALL 35 ENDPOINTS)
+        const endpoints = [
+          // AUTH
+          { id: 'auth-reg', group: 'Auth', name: 'Register User', method: 'POST', path: '/auth/register', auth: 'public', description: 'Mendaftarkan user baru (akan mengembalikan Bearer Token)',
+            body: { name: 'Budi Santoso', email: 'budi_' + Math.floor(Math.random()*1000) + '@gmail.com', password: 'password123', password_confirmation: 'password123', phone_number: '6281234567890', instagram_handle: 'budi_pati', domicile_city: 'Pati' } },
+          { id: 'auth-login', group: 'Auth', name: 'Login User', method: 'POST', path: '/auth/login', auth: 'public', description: 'Login dan mendapatkan token Bearer Sanctum',
+            body: { email: 'user@findfound.test', password: 'user1234' } },
+          { id: 'auth-logout', group: 'Auth', name: 'Logout', method: 'POST', path: '/auth/logout', auth: 'user', description: 'Logout dan memusnahkan token aktif' },
+
+          // PROFILE
+          { id: 'prof-get', group: 'Profile', name: 'Get Current Profile', method: 'GET', path: '/profile', auth: 'user', description: 'Melihat profil user terautentikasi' },
+          { id: 'prof-update', group: 'Profile', name: 'Update Profile', method: 'PUT', path: '/profile', auth: 'user', description: 'Memperbarui data profil',
+            body: { name: 'Budi Santoso Updated', phone_number: '628999888777', instagram_handle: 'budi_new', domicile_city: 'Juwana' } },
+
+          // CATEGORIES
+          { id: 'cat-list', group: 'Categories', name: 'Get All Categories', method: 'GET', path: '/categories', auth: 'public', description: 'Mengambil master kategori barang' },
+
+          // ITEMS
+          { id: 'item-list', group: 'Items', name: 'List Items (Public Feed)', method: 'GET', path: '/items?type=found&district=Pati', auth: 'public', description: 'Filter item berdasarkan type, district, category_id, search' },
+          { id: 'item-detail', group: 'Items', name: 'Get Item Detail', method: 'GET', path: '/items/1', auth: 'public', description: 'Detail lengkap 1 barang beserta foto dan lokasi' },
+          { id: 'item-create', group: 'Items', name: 'Create Report (Lost/Found)', method: 'POST', path: '/items', auth: 'user', description: 'Membuat laporan barang baru (Mendukung upload photo)',
+            isMultipart: true,
+            body: { type: 'found', title: 'Dompet Kulit Coklat', category_id: 6, description: 'Ditemukan di bangku taman Alun-alun Pati', secret_details: 'Ada foto keluarga dan uang receh di kantong rahasia', incident_date: '2026-09-07 15:30:00', location_name: 'Alun-alun Pati', district: 'Pati Kota', reward_offered: '' } },
+          { id: 'item-update', group: 'Items', name: 'Update Report', method: 'PUT', path: '/items/1', auth: 'user', description: 'Memperbarui info laporan (hanya jika status open)',
+            body: { title: 'Dompet Kulit Coklat Revisi', description: 'Deskripsi diperbarui...', incident_date: '2026-09-07 16:00:00', location_name: 'Alun-alun Pati', district: 'Pati Kota', category_id: 6, type: 'found' } },
+          { id: 'item-status', group: 'Items', name: 'Update Item Status', method: 'PUT', path: '/items/1/status', auth: 'user', description: 'Mengubah status barang (open/claimed/resolved/cancelled)',
+            body: { status: 'resolved' } },
+          { id: 'item-delete', group: 'Items', name: 'Delete Item', method: 'DELETE', path: '/items/1', auth: 'user', description: 'Menghapus laporan (jika status open/cancelled)' },
+          { id: 'item-my', group: 'Items', name: 'Get My Reports', method: 'GET', path: '/items/user/my', auth: 'user', description: 'Daftar barang yang dilaporkan oleh user yang sedang login' },
+          { id: 'item-reward', group: 'Items', name: 'Give Reward / Rating', method: 'POST', path: '/items/1/reward', auth: 'user', description: 'Memberi bintang & badge ke penemu setelah barang berstatus resolved',
+            body: { rating: 5, badge: 'honest_finder', message: 'Terima kasih banyak atas kejujurannya!' } },
+
+          // CLAIMS
+          { id: 'claim-create', group: 'Claims', name: 'Submit Claim on Item', method: 'POST', path: '/items/1/claims', auth: 'user', description: 'Mengajukan klaim kepemilikan atas barang',
+            body: { proof_description: 'Dompet itu milik saya, berisi KTP atas nama saya dan kartu perpustakaan daerah.' } },
+          { id: 'claim-incoming', group: 'Claims', name: 'Get Incoming Claims', method: 'GET', path: '/claims/incoming', auth: 'user', description: 'Klaim masuk atas barang temuan yang dilaporkan oleh saya (sebagai Finder)' },
+          { id: 'claim-my', group: 'Claims', name: 'Get My Submitted Claims', method: 'GET', path: '/claims/my', auth: 'user', description: 'Klaim yang diajukan oleh saya atas barang orang lain' },
+          { id: 'claim-status', group: 'Claims', name: 'Approve / Reject Claim', method: 'PATCH', path: '/claims/1/status', auth: 'user', description: 'Menyetujui / menolak klaim. Jika disetujui, kontak WhatsApp terbuka!',
+            body: { status: 'approved', response_notes: 'Bukti ciri-ciri cocok sekali. Silakan hubungi saya.' } },
+          { id: 'claim-contact', group: 'Claims', name: 'Get Unlocked Contact Info', method: 'GET', path: '/claims/1/contact', auth: 'user', description: 'Mendapatkan nomor WA dan link Instagram setelah klaim approved' },
+
+          // NOTIFICATIONS
+          { id: 'notif-list', group: 'Notifications', name: 'Get Notifications', method: 'GET', path: '/notifications', auth: 'user', description: 'Daftar notifikasi aktivitas dan smart match' },
+          { id: 'notif-read', group: 'Notifications', name: 'Mark Notification Read', method: 'PATCH', path: '/notifications/1/read', auth: 'user', description: 'Menandai 1 notifikasi telah dibaca' },
+          { id: 'notif-readall', group: 'Notifications', name: 'Mark All Read', method: 'PATCH', path: '/notifications/read-all', auth: 'user', description: 'Menandai seluruh notifikasi telah dibaca' },
+
+          // ADMIN
+          { id: 'adm-stats', group: 'Admin', name: 'Get Dashboard Statistics', method: 'GET', path: '/admin/stats', auth: 'admin', description: 'Statistik global untuk dashboard admin' },
+          { id: 'adm-items', group: 'Admin', name: 'Moderate Items', method: 'GET', path: '/admin/items', auth: 'admin', description: 'Daftar semua laporan barang untuk moderasi admin' },
+          { id: 'adm-item-mod', group: 'Admin', name: 'Update Item Moderation', method: 'PATCH', path: '/admin/items/1', auth: 'admin', description: 'Admin mengubah status/moderasi laporan',
+            body: { status: 'cancelled', moderation_note: 'Laporan palsu / duplikat terdeteksi.' } },
+          { id: 'adm-item-del', group: 'Admin', name: 'Hard Delete Item', method: 'DELETE', path: '/admin/items/1', auth: 'admin', description: 'Hapus paksa item dari database' },
+          { id: 'adm-claims', group: 'Admin', name: 'Monitor All Claims', method: 'GET', path: '/admin/claims', auth: 'admin', description: 'Daftar seluruh klaim pengguna untuk pengawasan admin' },
+          { id: 'adm-claim-mod', group: 'Admin', name: 'Override Claim Status', method: 'PATCH', path: '/admin/claims/1', auth: 'admin', description: 'Admin override status klaim',
+            body: { status: 'rejected', response_notes: 'Dibatalkan oleh admin karena terindikasi penipuan.' } },
+          { id: 'adm-cat-list', group: 'Admin', name: 'Admin List Categories', method: 'GET', path: '/admin/categories', auth: 'admin', description: 'List kategori beserta jumlah item' },
+          { id: 'adm-cat-create', group: 'Admin', name: 'Create Category', method: 'POST', path: '/admin/categories', auth: 'admin', description: 'Menambah kategori master baru',
+            body: { name: 'Elektronik & Gadget', slug: 'elektronik-gadget', icon: 'laptop', is_priority_document: false } },
+          { id: 'adm-cat-update', group: 'Admin', name: 'Update Category', method: 'PUT', path: '/admin/categories/1', auth: 'admin', description: 'Memperbarui kategori',
+            body: { name: 'KTP / Identitas Resmi', slug: 'ktp-identitas', icon: 'id-card', is_priority_document: true } },
+          { id: 'adm-cat-del', group: 'Admin', name: 'Delete Category', method: 'DELETE', path: '/admin/categories/10', auth: 'admin', description: 'Menghapus kategori jika tidak ada item terkait' },
+          { id: 'adm-users', group: 'Admin', name: 'List Users', method: 'GET', path: '/admin/users', auth: 'admin', description: 'Daftar seluruh pengguna terdaftar' },
+          { id: 'adm-user-upd', group: 'Admin', name: 'Update User Role', method: 'PATCH', path: '/admin/users/2', auth: 'admin', description: 'Mengubah role user menjadi admin',
+            body: { role: 'admin' } },
+          { id: 'adm-user-del', group: 'Admin', name: 'Delete User', method: 'DELETE', path: '/admin/users/2', auth: 'admin', description: 'Hapus akun user' },
+        ];
+
+        const selectedEndpoint = ref(endpoints[5]); // default: categories
+
+        const filteredEndpoints = computed(() => {
+          if (!searchQuery.value) return endpoints;
+          const q = searchQuery.value.toLowerCase();
+          return endpoints.filter(e => e.name.toLowerCase().includes(q) || e.path.toLowerCase().includes(q) || e.method.toLowerCase().includes(q));
+        });
+
+        const groupedEndpoints = computed(() => {
+          const groups = {};
+          filteredEndpoints.value.forEach(ep => {
+            if (!groups[ep.group]) groups[ep.group] = [];
+            groups[ep.group].push(ep);
+          });
+          return groups;
+        });
+
+        function toggleGroup(g) {
+          openGroups.value[g] = !openGroups.value[g];
+        }
+
+        function isGroupOpen(g) {
+          return expandAll.value || openGroups.value[g];
+        }
+
+        function getGroupIcon(g) {
+          const icons = { Auth: '🔑', Profile: '👤', Items: '📦', Claims: '🤝', Categories: '🏷️', Notifications: '🔔', Admin: '🛡️' };
+          return icons[g] || '📁';
+        }
+
+        function getMethodClass(m) {
+          const c = {
+            GET: 'bg-emerald-100 text-emerald-800 border border-emerald-300',
+            POST: 'bg-blue-100 text-blue-800 border border-blue-300',
+            PUT: 'bg-amber-100 text-amber-800 border border-amber-300',
+            PATCH: 'bg-purple-100 text-purple-800 border border-purple-300',
+            DELETE: 'bg-red-100 text-red-800 border border-red-300',
+          };
+          return c[m] || 'bg-slate-100 text-slate-700';
+        }
+
+        function getStatusClass(st) {
+          if (st >= 200 && st < 300) return 'bg-emerald-100 text-emerald-800';
+          if (st >= 400 && st < 500) return 'bg-amber-100 text-amber-800';
+          return 'bg-red-100 text-red-800';
+        }
+
+        function selectEndpoint(ep) {
+          selectedEndpoint.value = ep;
+          requestPath.value = ep.path;
+          bodyType.value = ep.isMultipart ? 'form' : 'json';
+          rawJsonBody.value = ep.body ? JSON.stringify(ep.body, null, 2) : '{}';
+          formFields.value = ep.body ? { ...ep.body } : {};
+        }
+
+        async function quickLogin(role) {
+          loadingAuth.value = true;
+          try {
+            const creds = role === 'admin' 
+              ? { email: 'admin@findfound.test', password: 'admin123' }
+              : { email: 'user@findfound.test', password: 'user1234' };
+
+            const res = await fetch(`${baseUrl.value}/auth/login`, {
+              method: 'POST',
+              headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+              body: JSON.stringify(creds),
+            });
+            const data = await res.json();
+            if (res.ok && data.token) {
+              bearerToken.value = data.token;
+              activeUser.value = data.user;
+              localStorage.setItem('ff_bearer_token', data.token);
+              localStorage.setItem('ff_active_user', JSON.stringify(data.user));
+              alert(`Sukses login sebagai: ${data.user.name} (${data.user.role})`);
+            } else {
+              alert('Gagal login: ' + (data.message || 'Error'));
+            }
+          } catch (e) {
+            alert('Gagal request: ' + e.message);
+          } finally {
+            loadingAuth.value = false;
+          }
+        }
+
+        function logout() {
+          bearerToken.value = '';
+          activeUser.value = null;
+          localStorage.removeItem('ff_bearer_token');
+          localStorage.removeItem('ff_active_user');
+        }
+
+        async function sendRequest() {
+          isLoading.value = true;
+          responseStatus.value = null;
+          responseBody.value = null;
+          const startTime = performance.now();
+
+          try {
+            const url = `${baseUrl.value}${requestPath.value.startsWith('/') ? '' : '/'}${requestPath.value}`;
+            const headers = { 'Accept': 'application/json', ...customHeaders.value };
+            if (bearerToken.value) {
+              headers['Authorization'] = `Bearer ${bearerToken.value.trim()}`;
+            }
+
+            let options = { method: selectedEndpoint.value.method, headers };
+
+            if (['POST', 'PUT', 'PATCH'].includes(selectedEndpoint.value.method)) {
+              if (bodyType.value === 'json') {
+                headers['Content-Type'] = 'application/json';
+                options.body = rawJsonBody.value;
+              } else {
+                const formData = new FormData();
+                for (const k in formFields.value) {
+                  formData.append(k, formFields.value[k]);
+                }
+                for (const k in fileInputs.value) {
+                  const input = fileInputs.value[k];
+                  if (input && input.files && input.files[0]) {
+                    formData.append(k, input.files[0]);
+                  }
+                }
+                options.body = formData;
+              }
+            }
+
+            const res = await fetch(url, options);
+            const endTime = performance.now();
+            responseTime.value = Math.round(endTime - startTime);
+            responseStatus.value = res.status;
+            responseStatusText.value = res.statusText;
+
+            const text = await res.text();
+            try {
+              responseBody.value = JSON.parse(text);
+              // auto save token if logged in or registered
+              if (responseBody.value && responseBody.value.token) {
+                bearerToken.value = responseBody.value.token;
+                activeUser.value = responseBody.value.user;
+                localStorage.setItem('ff_bearer_token', responseBody.value.token);
+                localStorage.setItem('ff_active_user', JSON.stringify(responseBody.value.user));
+              }
+            } catch (e) {
+              responseBody.value = text;
+            }
+          } catch (e) {
+            responseStatus.value = 0;
+            responseStatusText.value = 'Connection / CORS Error';
+            responseBody.value = {
+              error: e.message,
+              troubleshooting: [
+                'Pastikan server Laravel aktif dengan: php artisan serve',
+                `Target request: ${baseUrl.value}`,
+                'Jika membuka tester lewat URL http://localhost:8000, pastikan BASE URL juga http://localhost:8000/api/v1 (jangan campur 127.0.0.1 dengan localhost)',
+                'Jika membuka file langsung (file:///...), buka lewat browser dengan URL: http://localhost:8000/tester'
+              ]
+            };
+          } finally {
+            isLoading.value = false;
+          }
+        }
+
+        const formattedResponseBody = computed(() => {
+          if (responseBody.value === null) return '<span class="text-slate-500">// Menunggu request dikirim...</span>';
+          if (typeof responseBody.value === 'string') return escapeHtml(responseBody.value);
+          return syntaxHighlight(JSON.stringify(responseBody.value, null, 2));
+        });
+
+        function syntaxHighlight(json) {
+          json = escapeHtml(json);
+          return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            let cls = 'text-amber-400';
+            if (/^"/.test(match)) {
+              if (/:$/.test(match)) {
+                cls = 'text-sky-400 font-bold';
+              } else {
+                cls = 'text-emerald-400';
+              }
+            } else if (/true|false/.test(match)) {
+              cls = 'text-rose-400 font-bold';
+            } else if (/null/.test(match)) {
+              cls = 'text-slate-500 italic';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+          });
+        }
+
+        function escapeHtml(str) {
+          return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function copyResponse() {
+          if (!responseBody.value) return;
+          const text = typeof responseBody.value === 'string' ? responseBody.value : JSON.stringify(responseBody.value, null, 2);
+          navigator.clipboard.writeText(text);
+          copyLabel.value = 'Copied!';
+          setTimeout(() => copyLabel.value = 'Copy Response', 2000);
+        }
+
+        async function fetchDbSchema() {
+          dbLoading.value = true;
+          try {
+            const res = await fetch(`${baseUrl.value}/dev/db-inspect`);
+            const data = await res.json();
+            if (data.data) {
+              dbSchema.value = data.data;
+              if (!dbSchema.value[activeDbTable.value]) {
+                activeDbTable.value = Object.keys(data.data)[0];
+              }
+            }
+          } catch (e) {
+            console.error(e);
+          } finally {
+            dbLoading.value = false;
+          }
+        }
+
+        function formatTableCell(val) {
+          if (val === null || val === undefined) return 'NULL';
+          if (typeof val === 'object') return JSON.stringify(val);
+          return String(val);
+        }
+
+        onMounted(() => {
+          selectEndpoint(selectedEndpoint.value);
+        });
+
+        return {
+          baseUrl, currentTab, reqTab, dbSubTab, searchQuery, expandAll, openGroups,
+          bearerToken, activeUser, loadingAuth, requestPath, bodyType, rawJsonBody, formFields,
+          fileInputs, customHeaders, isLoading, responseStatus, responseStatusText, responseTime,
+          responseBody, copyLabel, dbLoading, dbSchema, activeDbTable, filteredEndpoints,
+          groupedEndpoints, selectedEndpoint, formattedResponseBody, toggleGroup, isGroupOpen,
+          getGroupIcon, getMethodClass, getStatusClass, selectEndpoint, quickLogin, logout,
+          sendRequest, copyResponse, fetchDbSchema, formatTableCell
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
