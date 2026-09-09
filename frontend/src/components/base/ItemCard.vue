@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink } from 'vue-router'
-import BaseBadge from './base/BaseBadge.vue'
+import BaseBadge from './BaseBadge.vue'
 
 defineProps({
   item: { type: Object, required: true },
