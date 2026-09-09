@@ -11,102 +11,45 @@ Find & Found menghubungkan orang yang kehilangan barang dengan orang yang menemu
 | Bagian | Teknologi |
 |---|---|
 | Frontend | Vue.js 3 (Composition API), Vue Router 4, Pinia, Tailwind CSS, Leaflet.js |
-| Backend | Laravel 12 (PHP 8.3+), Laravel Sanctum |
+| Backend | Laravel 12 (PHP 8.3+), REST API, Laravel Sanctum |
 | Database | MySQL / MariaDB |
 | Storage | Local Disk (dev) / S3-compatible (prod) |
 | Maps | Leaflet.js + OpenStreetMap |
 
 ## Struktur Repository
 
-```
+```text
 Find&Found/
-├── README.md                   # Panduan project ini
-├── backend/                    # Laravel 12 REST API
-├── frontend/                   # Vue.js 3 SPA
-├── docs/
+├── README.md                   # Panduan utama project
+├── backend/                    # Backend API (Laravel 12 REST API)
+├── frontend/                   # Frontend SPA (Vue.js 3 + Vite)
+├── docs/                       # Dokumentasi teknis & requirement
 │   ├── PRD.md                  # Product Requirement Document (final)
 │   ├── SURVEY_ANALYSIS.md      # Analisis data survei 50 responden
 │   ├── DATABASE_SCHEMA.md      # Skema database lengkap + ERD
 │   ├── API_ENDPOINTS.md        # Dokumentasi semua endpoint API
-│   ├── DESIGN_SYSTEM.md        # Design system, warna, tipografi, komponen
-│   └── CHANGELOG.md            # Riwayat perubahan dokumen
-├── diagrams/
-│   ├── userflow.md             # User flow diagram (Mermaid)
-│   ├── sitemap.md              # Sitemap diagram (Mermaid)
-│   ├── class-diagram.md        # UML Class diagram (Mermaid)
-│   ├── sequence-diagram.md     # Sequence diagram klaim (Mermaid)
-│   └── activity-diagram.md     # Activity diagram pelaporan (Mermaid)
-├── wireframes/
-│   ├── low-fidelity/           # Wireframe lo-fi (20 halaman)
-│   └── high-fidelity/          # Wireframe hi-fi (20 halaman)
-├── data/                       # Data mentah survei
-└── prototypes/                 # Prototype HTML
+│   ├── DESIGN_SYSTEM.md        # Aturan desain, warna, tipografi, komponen
+│   ├── FRONTEND_PROMPT.md      # Panduan/prompt untuk setup frontend
+│   └── CHANGELOG.md            # Riwayat perubahan dokumentasi
+├── diagrams/                   # Semua diagram sistem (Mermaid & PlantUML)
+│   ├── userflow.md             # Flow pengguna secara umum
+│   ├── sitemap.md              # Peta hierarki navigasi
+│   ├── use-case-diagram.md     # UML Use Case Diagram (Mermaid)
+│   ├── use-case-diagram.puml   # UML Use Case Diagram (PlantUML)
+│   ├── class-diagram.md        # UML Class diagram & struktur database
+│   ├── sequence-diagram.md     # Sequence diagram proses klaim
+│   └── activity-diagram.md     # Activity diagram alur pelaporan
+├── wireframes/                 # Lo-Fi dan Hi-Fi desain antarmuka
+│   ├── low-fidelity/           # Mockup kasar (20 halaman)
+│   └── high-fidelity/          # Visual akhir UI (20 halaman)
+├── data/                       # Data mentah
+│   └── survey-responses.csv    # Hasil raw form kuesioner awal
+├── prototypes/                 # Prototype klik interaktif & export desain
+└── tools/                      # Skrip bantuan/utilitas project
 ```
 
-## Halaman Aplikasi
+## Anggota Tim Pengembang — XII TJKT 1
 
-### Public (Tanpa Login)
-| Route | Halaman |
-|---|---|
-| `/` | Home / Landing Page |
-| `/explore` | Eksplorasi & Filter Barang |
-| `/items/:id` | Detail Barang |
-| `/priority-documents` | Dokumen Prioritas (KTP/SIM/Paspor) |
-| `/about` | Tentang Platform |
-| `/login` | Login |
-| `/register` | Registrasi |
-
-### User (Setelah Login)
-| Route | Halaman |
-|---|---|
-| `/dashboard` | Dashboard Aktivitas |
-| `/report/lost` | Form Lapor Barang Hilang |
-| `/report/found` | Form Lapor Barang Ditemukan |
-| `/my-reports` | Riwayat Laporan Saya |
-| `/my-claims` | Klaim yang Saya Ajukan |
-| `/incoming-claims` | Klaim Masuk atas Barang Temuan Saya |
-| `/notifications` | Notifikasi |
-| `/profile` | Profil & Reputasi |
-
-### Admin
-| Route | Halaman |
-|---|---|
-| `/admin/dashboard` | Statistik Global |
-| `/admin/items` | Moderasi Laporan |
-| `/admin/claims` | Pengawasan Klaim |
-| `/admin/categories` | Kelola Kategori |
-| `/admin/users` | Kelola Pengguna |
-
-## Dokumentasi
-
-- [PRD Lengkap](docs/PRD.md)
-- [Skema Database](docs/DATABASE_SCHEMA.md)
-- [API Endpoints](docs/API_ENDPOINTS.md)
-- [Design System](docs/DESIGN_SYSTEM.md)
-- [Analisis Survei](docs/SURVEY_ANALYSIS.md)
-
-## Setup Development
-
-### Backend (Laravel)
-```bash
-cd backend
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate --seed
-php artisan serve
-```
-
-### Frontend (Vue)
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## Tim
-
-**Kelompok — XII TJKT 1**
 1. Muhammad Alqaus Sigit Widodo
 2. Muhammad Roid Falih
 3. Nabila Aufa Bilqis Ardiyani
