@@ -879,6 +879,7 @@
 
         onMounted(() => {
           selectEndpoint(selectedEndpoint.value);
+          fetchDbSchema();
         });
 
         return {
